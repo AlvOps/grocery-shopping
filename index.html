@@ -1617,6 +1617,7 @@ class ShoppingListApp {
     }
 
     closeCoin() {
+        clearTimeout(this._coinTimer);
         if (this._coinAnims) { this._coinAnims.forEach(a => { try { a.cancel(); } catch (e) {} }); this._coinAnims = null; }
         this.el.coinOverlay.classList.remove('open');
         this.el.coinOverlay.setAttribute('aria-hidden', 'true');
@@ -1635,6 +1636,7 @@ class ShoppingListApp {
         this.el.coinResult.classList.remove('show');
         this.el.coinActions.classList.remove('show');
         this.el.coinResult.textContent = '';
+        this._coinRevealed = false;
 
         if (this._coinAnims) { this._coinAnims.forEach(a => { try { a.cancel(); } catch (e) {} }); this._coinAnims = null; }
 
@@ -1669,14 +1671,26 @@ class ShoppingListApp {
         ], { duration, easing: 'cubic-bezier(.33,.02,.62,1)', fill: 'forwards' });
 
         this._coinAnims = [float, spin, shadow];
+        this._coinRevealed = false;
         spin.onfinish = () => {
             this.el.coin.style.transform = `rotateY(${turns}deg)`;
             this.el.coinFloat.style.transform = 'translateY(0) scale(1)';
             this.revealCoin(label);
         };
+
+        // If the tab is backgrounded (phone switched app, screen off) the
+        // animation freezes and onfinish never fires — land on the result anyway.
+        clearTimeout(this._coinTimer);
+        this._coinTimer = setTimeout(() => {
+            this.el.coin.style.transform = `rotateY(${turns}deg)`;
+            this.el.coinFloat.style.transform = 'translateY(0) scale(1)';
+            this.revealCoin(label);
+        }, duration + 400);
     }
 
     revealCoin(label) {
+        if (this._coinRevealed) return;
+        this._coinRevealed = true;
         this.el.coinResult.innerHTML = `Ha salido <b>${label}</b>`;
         this.el.coinResult.classList.add('show');
         this.el.coinActions.classList.add('show');
