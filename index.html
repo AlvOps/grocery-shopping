@@ -191,6 +191,58 @@
     .list-item.completed .item-text { text-decoration: line-through; color: var(--muted-text); }
     .list-item.completed .item-meta { opacity: 0.5; }
 
+    .list-item.has-thumb { grid-template-columns: auto auto 1fr auto; }
+
+    .thumb {
+        width: 40px; height: 40px; border-radius: 10px; flex: 0 0 40px;
+        object-fit: contain; background: rgba(255, 255, 255, 0.06);
+        padding: 2px;
+    }
+
+    /* product card inside the item sheet */
+    .sheet-product {
+        display: none;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 16px;
+        padding: 10px;
+        border-radius: 14px;
+        background: rgba(9, 9, 20, 0.5);
+        border: 1px solid var(--border-color);
+    }
+    .sheet-product.on { display: flex; }
+    .sheet-product img {
+        width: 64px; height: 64px; border-radius: 12px; flex: 0 0 64px;
+        object-fit: contain; background: rgba(255, 255, 255, 0.06); padding: 3px;
+    }
+    .sheet-product .sp-meta { min-width: 0; font-size: 0.78rem; color: var(--muted-text); line-height: 1.45; }
+    .sheet-product .sp-brand { color: var(--text-color); font-weight: 600; font-size: 0.86rem; }
+    .grade {
+        display: inline-block; margin-top: 4px; padding: 1px 7px; border-radius: 6px;
+        font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+        color: #0b0b18;
+    }
+    .grade.a { background: #1e9e5a; } .grade.b { background: #6cc04a; }
+    .grade.c { background: #f5c93b; } .grade.d { background: #ef8c3c; }
+    .grade.e { background: #e05252; color: #fff; }
+
+    .community {
+        display: none; align-items: center; gap: 10px;
+        margin: -6px 0 14px; padding: 10px 12px;
+        border-radius: 12px; border: 1px solid rgba(251, 191, 36, 0.28);
+        background: rgba(251, 191, 36, 0.07);
+        font-size: 0.78rem; color: rgba(226, 232, 240, 0.8);
+    }
+    .community.on { display: flex; }
+    .community b { color: var(--accent-color); }
+    .community button {
+        margin-left: auto; flex: 0 0 auto;
+        padding: 7px 12px; min-height: 34px; border-radius: 9px; border: none;
+        background: rgba(251, 191, 36, 0.18); color: var(--accent-color);
+        font-family: inherit; font-size: 0.76rem; font-weight: 600; cursor: pointer;
+    }
+    .community button:active { transform: scale(0.97); }
+
     .check {
         appearance: none; -webkit-appearance: none;
         width: 26px; height: 26px; flex: 0 0 26px;
@@ -581,6 +633,19 @@
         <div class="sheet-handle"></div>
         <h2 id="sheetTitle">Item details</h2>
 
+        <div class="sheet-product" id="sheetProduct">
+            <img id="sheetImage" alt="" referrerpolicy="no-referrer" loading="lazy" />
+            <div class="sp-meta">
+                <div class="sp-brand" id="sheetBrand"></div>
+                <div id="sheetFacts"></div>
+            </div>
+        </div>
+
+        <div class="community" id="sheetCommunity">
+            <span id="communityText"></span>
+            <button id="communityUse">Use</button>
+        </div>
+
         <div class="field">
             <label for="sheetText">Product</label>
             <input type="text" id="sheetText" maxlength="60" autocomplete="off" />
@@ -771,6 +836,13 @@ class ShoppingListApp {
             toastAction: document.getElementById('toastAction'),
             sheet: document.getElementById('sheet'),
             sheetBackdrop: document.getElementById('sheetBackdrop'),
+            sheetProduct: document.getElementById('sheetProduct'),
+            sheetImage: document.getElementById('sheetImage'),
+            sheetBrand: document.getElementById('sheetBrand'),
+            sheetFacts: document.getElementById('sheetFacts'),
+            sheetCommunity: document.getElementById('sheetCommunity'),
+            communityText: document.getElementById('communityText'),
+            communityUse: document.getElementById('communityUse'),
             sheetText: document.getElementById('sheetText'),
             sheetCat: document.getElementById('sheetCat'),
             sheetPrice: document.getElementById('sheetPrice'),
@@ -820,7 +892,11 @@ class ShoppingListApp {
                     cat: i.cat || detectCategory(i.text),
                     done: !!i.done,
                     ts: i.ts || Date.now(),
-                    ean: i.ean || ''
+                    ean: i.ean || '',
+                    image: i.image || '',
+                    brand: i.brand || '',
+                    grade: i.grade || '',
+                    community: i.community || null
                 }));
                 return;
             }
@@ -898,6 +974,12 @@ class ShoppingListApp {
         this.el.qtyMinus.addEventListener('click', () => this.setDraftQty(this.draftQty - 1));
         this.el.qtyPlus.addEventListener('click', () => this.setDraftQty(this.draftQty + 1));
         this.el.sheetPrice.addEventListener('input', () => this.updateSheetTotal());
+        this.el.communityUse.addEventListener('click', () => {
+            if (this._communityPrice == null) return;
+            this.el.sheetPrice.value = String(this._communityPrice);
+            this.updateSheetTotal();
+            this.showToast('Community price applied');
+        });
         document.addEventListener('keydown', e => { if (e.key === 'Escape' && this.el.sheet.classList.contains('open')) this.closeSheet(); });
     }
 
@@ -973,6 +1055,17 @@ class ShoppingListApp {
         cb.checked = item.done;
         cb.setAttribute('aria-label', `${item.text} bought`);
         cb.addEventListener('change', () => this.toggleDone(item.id));
+
+        if (item.image) {
+            li.classList.add('has-thumb');
+            const img = document.createElement('img');
+            img.className = 'thumb';
+            img.src = item.image;
+            img.alt = '';
+            img.loading = 'lazy';
+            img.referrerPolicy = 'no-referrer';
+            li.appendChild(img);
+        }
 
         const body = document.createElement('div');
         body.className = 'item-body';
@@ -1246,6 +1339,43 @@ class ShoppingListApp {
         }
     }
 
+    // Product picture, brand, Nutri-Score and the community price, if known.
+    renderProductCard(item) {
+        const has = !!(item.image || item.brand || item.grade || item.ean);
+        this.el.sheetProduct.classList.toggle('on', has);
+        if (item.image) {
+            this.el.sheetImage.src = item.image;
+            this.el.sheetImage.style.display = '';
+        } else {
+            this.el.sheetImage.removeAttribute('src');
+            this.el.sheetImage.style.display = 'none';
+        }
+        this.el.sheetBrand.textContent = item.brand || (item.text || '');
+
+        const facts = [];
+        if (item.grade && /^[a-e]$/.test(item.grade)) {
+            facts.push(`<span class="grade ${item.grade}">Nutri-Score ${item.grade.toUpperCase()}</span>`);
+        }
+        if (item.ean) facts.push(`EAN ${item.ean}`);
+        this.el.sheetFacts.innerHTML = facts.join(' &middot; ');
+
+        const cp = item.community;
+        this._communityPrice = cp && cp.value ? cp.value : null;
+        this.el.sheetCommunity.classList.toggle('on', !!this._communityPrice);
+        if (this._communityPrice) {
+            const where = [cp.store, cp.city].filter(Boolean).join(', ');
+            const when = cp.date ? this.formatDate(cp.date) : '';
+            this.el.communityText.innerHTML =
+                `Community price <b>${this.money(cp.value)}</b> — ${where || 'store unknown'}${when ? ' · ' + when : ''}`;
+            this.el.communityUse.textContent = `Use ${this.money(cp.value)}`;
+        }
+    }
+
+    formatDate(iso) {
+        const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
+        return m ? `${m[3]}.${m[2]}.${m[1]}` : '';
+    }
+
     /* ------------------------------- sheet --------------------------------- */
     openSheet(id) {
         const it = this.items.find(i => i.id === id);
@@ -1256,6 +1386,7 @@ class ShoppingListApp {
         this.el.sheetCat.value = it.cat;
         this.el.sheetPrice.value = it.price ? String(it.price) : '';
         this.el.qtyValue.textContent = it.qty;
+        this.renderProductCard(it);
         this.updateSheetTotal();
         this.el.sheet.classList.add('open');
         this.el.sheetBackdrop.classList.add('open');
@@ -1550,39 +1681,117 @@ class ShoppingListApp {
 
         this.items.push({
             id: this.uid(), text: name, qty: 1, price: 0,
-            cat: detectCategory(name), done: false, ts: Date.now(), ean: code
+            cat: detectCategory(name), done: false, ts: Date.now(), ean: code,
+            image: (info && info.image) || '',
+            brand: (info && info.brand) || '',
+            grade: (info && info.grade) || '',
+            community: (info && info.community) || null
         });
         this.save();
         this.render();
-        this.showToast(info && info.name ? `${name} added` : `Added as ${name} — rename it if needed`);
+
+        const bits = [];
+        if (info && info.community && info.community.value) bits.push(this.money(info.community.value) + ' seen');
+        this.showToast(info && info.name ? `${name} added${bits.length ? ' · ' + bits[0] : ''}` : `Added as ${name} — rename it if needed`);
     }
 
+    // Product data: Open Food Facts first, then the sister databases
+    // (cosmetics, pet food, general products) with the same query shape.
     async lookupBarcode(code) {
         let cache = {};
         try { cache = JSON.parse(localStorage.getItem('sl_ean') || '{}'); } catch (e) {}
         if (cache[code]) return cache[code];
 
+        const product = await this.lookupProduct(code);
+        const community = await this.lookupCommunityPrice(code);
+        const entry = Object.assign(
+            { name: '', brand: '', quantity: '', image: '', grade: '' },
+            product || {},
+            { community }
+        );
+
+        cache[code] = entry;
+        try { localStorage.setItem('sl_ean', JSON.stringify(cache)); } catch (e) {}
+        return entry;
+    }
+
+    async lookupProduct(code) {
+        const bases = [
+            'https://world.openfoodfacts.org',
+            'https://world.openbeautyfacts.org',
+            'https://world.openpetfoodfacts.org',
+            'https://world.openproductsfacts.org'
+        ];
+        const fields = 'product_name,product_name_de,product_name_es,product_name_en,brands,quantity,image_front_small_url,nutriscore_grade';
+
+        for (const base of bases) {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), 7000);
+            try {
+                const res = await fetch(`${base}/api/v2/product/${encodeURIComponent(code)}.json?fields=${fields}`,
+                                        { signal: ctrl.signal });
+                const json = await res.json();
+                if (json && json.status === 1 && json.product) {
+                    const p = json.product;
+                    return {
+                        // Germany first: the label on the shelf is German.
+                        name: (p.product_name_de || p.product_name_es || p.product_name || p.product_name_en || '').trim(),
+                        brand: (p.brands || '').split(',')[0].trim(),
+                        quantity: (p.quantity || '').trim(),
+                        image: p.image_front_small_url || '',
+                        grade: String(p.nutriscore_grade || '').toLowerCase().trim()
+                    };
+                }
+            } catch (e) {
+                /* try the next database */
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+        return null;
+    }
+
+    // Most recent crowdsourced price for this barcode (Open Prices).
+    async lookupCommunityPrice(code) {
         const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 8000);
+        const timer = setTimeout(() => ctrl.abort(), 7000);
         try {
-            const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json` +
-                        '?fields=product_name,product_name_es,product_name_en,brands,quantity';
-            const res = await fetch(url, { signal: ctrl.signal });
+            const res = await fetch(
+                `https://prices.openfoodfacts.org/api/v1/prices?product_code=${encodeURIComponent(code)}&order_by=-date&size=1`,
+                { signal: ctrl.signal, headers: { Accept: 'application/json' } }
+            );
             const json = await res.json();
-            const p = json && json.product;
-            const entry = p ? {
-                name: (p.product_name_es || p.product_name || p.product_name_en || '').trim(),
-                brand: (p.brands || '').split(',')[0].trim(),
-                quantity: (p.quantity || '').trim()
-            } : { name: '', brand: '', quantity: '' };
-            cache[code] = entry;
-            try { localStorage.setItem('sl_ean', JSON.stringify(cache)); } catch (e) {}
-            return entry;
+            const hit = json && json.items && json.items[0];
+            if (!hit || !hit.price) return null;
+            const loc = hit.location || {};
+            return {
+                value: Number(hit.price),
+                store: loc.osm_name || loc.osm_brand || '',
+                city: this.cityFromOsm(loc.osm_display_name || ''),
+                date: String(hit.date || '').slice(0, 10)
+            };
         } catch (e) {
             return null;
         } finally {
             clearTimeout(timer);
         }
+    }
+
+    // "REWE, 3, Am Pletzerturm, Düren, Kreis Düren, Nordrhein-Westfalen, 52349, Deutschland" -> "Düren"
+    cityFromOsm(display) {
+        const STATES = new Set([
+            'baden-württemberg', 'baden-wurttemberg', 'bayern', 'bavaria', 'berlin', 'brandenburg', 'bremen',
+            'hamburg', 'hessen', 'hesse', 'mecklenburg-vorpommern', 'niedersachsen', 'lower saxony',
+            'nordrhein-westfalen', 'north rhine-westphalia', 'rheinland-pfalz', 'rhineland-palatinate',
+            'saarland', 'sachsen', 'saxony', 'sachsen-anhalt', 'saxony-anhalt', 'schleswig-holstein',
+            'thüringen', 'thuringia'
+        ]);
+        const admin = s => !s || /^(kreis|landkreis|stadtkreis|region|bezirk)\b/i.test(s) || STATES.has(s.toLowerCase());
+        const parts = display.split(',').map(s => s.trim()).filter(Boolean);
+        const plz = parts.findIndex(p => /^\d{5}$/.test(p));
+        let i = plz > 0 ? plz - 1 : parts.length - 3;
+        while (i > 0 && admin(parts[i])) i--;
+        return parts[i] || '';
     }
 
     /* -------------------------------- toast -------------------------------- */

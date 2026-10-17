@@ -15,7 +15,11 @@ Test it **HERE** ➡️ **https://alvops.github.io/grocery-shopping/**
 
 ### Voice and barcode
 - **🎤 Voice add** — tap Voice and speak: *"leche, huevos y pan"* is split into three items. Continuous listening, live interim transcript, handles Spanish/German/English separators (`y`, `und`, `and`). Chrome, Edge and Safari only (Web Speech API); the language defaults to `es-ES` and can be changed via `localStorage.sl_voiceLang`.
-- **📷 Barcode scan** — opens the rear camera and reads EAN-8/13 and UPC-A/E codes (native `BarcodeDetector` where available, ZXing elsewhere), then looks the product up on Open Food Facts to get its name instead of just the number. Unknown codes are added as `Item <code>` so you can rename them, and every scanned code is kept on the item.
+- **📷 Barcode scan** — opens the rear camera and reads EAN-8/13 and UPC-A/E codes (native `BarcodeDetector` where available, ZXing elsewhere), then resolves the product online instead of just adding a number:
+  - **names** come from Open Food Facts first, then Open Beauty Facts, Open Pet Food Facts and Open Products Facts — so a cosmetic or a cleaning product resolves too. German product names win when the database has one, since that is the label on the shelf here.
+  - **the shelf photo, brand and Nutri-Score** are stored with the item and shown as a thumbnail in the list and as a product card in the detail sheet.
+  - **a crowdsourced price** from [Open Prices](https://prices.openfoodfacts.org) for the most recent matching receipt — store, city and date included, with a one-tap "Use €x,xx" button. It is never applied silently: it may be an old price from another city.
+  - Unknown codes are added as `Item <code>` so you can rename them, and every lookup is cached per EAN, so the second scan is instant and works offline.
 - Browsers without `BarcodeDetector` (Safari on iPhone/iPad, Firefox) get the same live camera scan through **ZXing**, loaded on demand from jsDelivr the first time you tap Scan — nothing is downloaded until then. Verified decoding an EAN-13 on the fallback path.
 - No camera permission or no camera at all? The scanner drops to a numeric field — type the digits and get the same lookup.
 
