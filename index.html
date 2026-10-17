@@ -2,856 +2,1132 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0b0b18" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="description" content="Fast grocery list for the store: paste a whole list, sort by aisle, track prices, share it." />
 <title>Shopping List</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
     :root {
         --primary-color: #6366f1;
         --secondary-color: #8b5cf6;
-        --accent-color: #f59e0b;
+        --accent-color: #fbbf24;
         --success-color: #10b981;
         --error-color: #ef4444;
-        --bg-color: #0f0f23;
-        --container-bg: rgba(17, 24, 39, 0.8);
+        --bg-color: #0b0b18;
+        --container-bg: rgba(20, 25, 45, 0.78);
         --text-color: #f8fafc;
-        --item-bg: rgba(30, 41, 59, 0.6);
-        --completed-bg: rgba(75, 85, 99, 0.4);
-        --border-color: rgba(148, 163, 184, 0.2);
-        --glow-color: #6366f1;
-        --transition-time: 0.3s;
+        --muted-text: rgba(226, 232, 240, 0.55);
+        --item-bg: rgba(30, 41, 59, 0.62);
+        --completed-bg: rgba(51, 65, 85, 0.32);
+        --border-color: rgba(148, 163, 184, 0.18);
+        --transition-time: 0.2s;
+        --add-bar-height: 78px;
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html { height: 100%; }
 
     body {
-        font-family: 'Poppins', sans-serif;
+        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
         background: var(--bg-color);
         color: var(--text-color);
+        min-height: 100dvh;
         overflow-x: hidden;
-        min-height: 100vh;
-        position: relative;
+        overscroll-behavior-y: contain;
+        padding-bottom: calc(var(--add-bar-height) + var(--safe-bottom) + 16px);
+        -webkit-font-smoothing: antialiased;
     }
 
-    /* Animated Background */
     #particles-canvas {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1;
-        background: linear-gradient(45deg, #0f0f23, #1a1a3e);
+        position: fixed; inset: 0; width: 100%; height: 100%; z-index: -2;
+        background:
+            radial-gradient(1100px 600px at 12% -10%, rgba(99, 102, 241, 0.22), transparent 60%),
+            radial-gradient(900px 500px at 100% 0%, rgba(139, 92, 246, 0.16), transparent 55%),
+            linear-gradient(165deg, #0b0b18 0%, #12122a 55%, #0d0d1f 100%);
     }
 
-    /* Moving background shapes */
-    .bg-shapes {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1;
-        overflow: hidden;
-    }
-
+    .bg-shapes { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
     .bg-shape {
-        position: absolute;
-        background: linear-gradient(45deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
-        border-radius: 50%;
-        animation: float 20s infinite ease-in-out;
+        position: absolute; border-radius: 50%;
+        background: linear-gradient(45deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.12));
+        animation: float 24s infinite ease-in-out;
     }
-
-    .bg-shape:nth-child(1) {
-        width: 300px;
-        height: 300px;
-        top: 10%;
-        left: 10%;
-        animation-delay: 0s;
-    }
-
-    .bg-shape:nth-child(2) {
-        width: 200px;
-        height: 200px;
-        top: 60%;
-        right: 10%;
-        animation-delay: -7s;
-    }
-
-    .bg-shape:nth-child(3) {
-        width: 150px;
-        height: 150px;
-        bottom: 20%;
-        left: 30%;
-        animation-delay: -14s;
-    }
-
-    .bg-shape:nth-child(4) {
-        width: 400px;
-        height: 400px;
-        top: 30%;
-        right: 30%;
-        animation-delay: -5s;
-    }
-
+    .bg-shape:nth-child(1) { width: 300px; height: 300px; top: 8%; left: -8%; }
+    .bg-shape:nth-child(2) { width: 220px; height: 220px; top: 55%; right: -10%; animation-delay: -8s; }
+    .bg-shape:nth-child(3) { width: 160px; height: 160px; bottom: 12%; left: 22%; animation-delay: -15s; }
+    .bg-shape:nth-child(4) { width: 380px; height: 380px; top: 28%; right: 22%; animation-delay: -5s; }
     @keyframes float {
-        0%, 100% { 
-            transform: translate(0, 0) rotate(0deg);
-            opacity: 0.3;
-        }
-        25% {
-            transform: translate(30px, -30px) rotate(90deg);
-            opacity: 0.1;
-        }
-        50% {
-            transform: translate(-20px, 20px) rotate(180deg);
-            opacity: 0.4;
-        }
-        75% {
-            transform: translate(-30px, -20px) rotate(270deg);
-            opacity: 0.2;
-        }
+        0%, 100% { transform: translate3d(0,0,0) rotate(0deg); opacity: 0.32; }
+        50% { transform: translate3d(22px,-20px,0) rotate(180deg); opacity: 0.14; }
     }
 
-    .main-container {
-        position: relative;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        min-height: 100vh;
-        backdrop-filter: blur(10px);
+    .main-container { position: relative; max-width: 720px; margin: 0 auto; padding: 12px 14px 4px; }
+
+    .app-header {
+        position: sticky; top: 0; z-index: 20;
+        padding: 12px 14px 10px; margin: 0 -14px 10px;
+        background: linear-gradient(180deg, rgba(11,11,24,0.97) 68%, rgba(11,11,24,0.8));
+        backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+        border-bottom: 1px solid var(--border-color);
     }
 
-    .container {
-        background: var(--container-bg);
-        border-radius: 20px;
-        padding: 2rem;
-        border: 1px solid var(--border-color);
-        backdrop-filter: blur(20px);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
+    .title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    h1 { font-size: 1.3rem; font-weight: 600; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+    .counter { font-size: 0.8rem; font-weight: 500; color: var(--muted-text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .counter strong { color: var(--accent-color); font-weight: 600; }
+
+    .progress-track {
+        height: 4px; margin-top: 10px; border-radius: 999px;
+        background: rgba(148, 163, 184, 0.15); overflow: hidden;
+    }
+    .progress-bar {
+        height: 100%; width: 0%; border-radius: 999px;
+        background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .container::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
-        opacity: 1;
-    }
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 
-    h1 {
-        text-align: center;
-        margin-bottom: 2rem;
-        font-size: 2.5rem;
-        font-weight: 600;
-        color: var(--accent-color);
+    .tool-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 9px 13px; min-height: 40px;
+        border-radius: 999px; border: 1px solid var(--border-color);
+        background: rgba(30, 41, 59, 0.55); color: var(--text-color);
+        font-family: inherit; font-size: 0.8rem; font-weight: 500;
+        cursor: pointer; touch-action: manipulation;
+        transition: background var(--transition-time) ease, border-color var(--transition-time) ease,
+                    transform var(--transition-time) ease, color var(--transition-time) ease;
     }
+    .tool-btn:active { transform: scale(0.97); }
+    .tool-btn.primary {
+        background: linear-gradient(135deg, rgba(99,102,241,0.92), rgba(139,92,246,0.92));
+        border-color: transparent; color: #fff;
+    }
+    .tool-btn.danger { color: #fca5a5; border-color: rgba(239, 68, 68, 0.32); }
+    .tool-btn.active { border-color: rgba(251, 191, 36, 0.6); color: var(--accent-color); background: rgba(251, 191, 36, 0.1); }
 
-    .top-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-        flex-wrap: wrap;
-        gap: 1rem;
+    /* search row */
+    .search-row { display: none; margin-bottom: 10px; }
+    .search-row.open { display: flex; }
+    #searchInput {
+        width: 100%; padding: 12px 14px; border-radius: 12px;
+        border: 1px solid var(--border-color); background: rgba(9,9,20,0.65);
+        color: var(--text-color); font-family: inherit; font-size: 16px;
     }
+    #searchInput:focus { outline: none; border-color: var(--primary-color); }
 
-    .top-buttons {
-        display: flex;
-        gap: 1rem;
+    /* paste panel */
+    .paste-panel {
+        display: none; margin-bottom: 12px; padding: 14px;
+        background: var(--container-bg); border: 1px solid var(--border-color);
+        border-radius: 16px; backdrop-filter: blur(12px);
+        animation: fadeIn 0.22s ease;
     }
+    .paste-panel.open { display: block; }
+    .paste-hint { font-size: 0.78rem; line-height: 1.45; color: var(--muted-text); margin-bottom: 10px; }
+    #bulkInput {
+        width: 100%; min-height: 150px; resize: vertical; padding: 12px 14px;
+        border: 1px solid var(--border-color); border-radius: 12px;
+        background: rgba(9,9,20,0.65); color: var(--text-color);
+        font-family: inherit; font-size: 16px; line-height: 1.55;
+    }
+    #bulkInput:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(99,102,241,0.18); }
+    .paste-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    .paste-actions button {
+        min-height: 48px; border: none; border-radius: 12px; cursor: pointer;
+        font-family: inherit; font-size: 0.95rem; font-weight: 600;
+        transition: transform var(--transition-time) ease, opacity var(--transition-time) ease;
+        touch-action: manipulation;
+    }
+    .paste-actions button:active { transform: scale(0.98); opacity: 0.9; }
+    #bulkAddBtn { background: linear-gradient(135deg, var(--success-color), #059669); color: #fff; }
+    #bulkCancelBtn { background: rgba(148,163,184,0.16); color: var(--text-color); border: 1px solid var(--border-color); }
 
-    .add-item {
-        display: flex;
-        margin-bottom: 2rem;
-        gap: 1rem;
-    }
+    #feedbackMsg { color: #fca5a5; font-size: 0.8rem; font-weight: 500; transition: all var(--transition-time) ease; }
+    #feedbackMsg:not(:empty) { margin-bottom: 10px; }
+    #feedbackMsg.feedback-success { color: var(--success-color); }
 
-    #newItem {
-        flex: 1;
-        padding: 1rem 1.5rem;
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        font-size: 16px;
-        background: var(--item-bg);
-        color: var(--text-color);
-        font-family: 'Poppins', sans-serif;
-        transition: all var(--transition-time) ease;
-    }
+    /* list */
+    .shopping-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
 
-    #newItem:focus {
-        outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+    .group-header {
+        display: flex; align-items: center; gap: 8px;
+        margin: 14px 2px 2px; padding-bottom: 2px;
+        font-size: 0.72rem; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase;
+        color: rgba(226, 232, 240, 0.42);
     }
-
-    #addBtn, #clearCompletedBtn, #clearAllBtn {
-        padding: 1rem 1.5rem;
-        border: none;
-        border-radius: 12px;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: 500;
-        font-family: 'Poppins', sans-serif;
-        transition: all var(--transition-time) ease;
-        position: relative;
-        overflow: hidden;
-        white-space: nowrap;
-    }
-
-    #addBtn {
-        background: linear-gradient(135deg, var(--success-color), #059669);
-        color: white;
-    }
-
-    #clearCompletedBtn {
-        background: linear-gradient(135deg, #f97316, #ea580c);
-        color: white;
-    }
-
-    #clearAllBtn {
-        background: linear-gradient(135deg, var(--error-color), #b91c1c);
-        color: white;
-    }
-
-    #addBtn:hover, #clearCompletedBtn:hover, #clearAllBtn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
-    }
-
-    .shopping-list {
-        list-style: none;
-        padding: 0;
-    }
+    .group-header:first-child { margin-top: 2px; }
+    .group-header .count { margin-left: auto; font-weight: 500; letter-spacing: 0; text-transform: none; }
 
     .list-item {
-        display: flex;
-        align-items: center;
-        padding: 1rem 1.5rem;
-        margin: 1rem 0;
-        background: var(--item-bg);
-        border-radius: 12px;
-        border: 1px solid var(--border-color);
-        transition: all var(--transition-time) ease;
-        position: relative;
-        overflow: hidden;
-        animation: fadeIn 0.5s ease;
+        display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px;
+        padding: 8px 8px 8px 14px; min-height: 58px;
+        background: var(--item-bg); border: 1px solid var(--border-color); border-radius: 14px;
+        transition: background var(--transition-time) ease, border-color var(--transition-time) ease, opacity var(--transition-time) ease;
+        animation: fadeIn 0.2s ease; touch-action: manipulation;
     }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .list-item.removing { animation: fadeOut 0.2s ease forwards; }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: translateX(24px); } }
+    .list-item.completed { background: var(--completed-bg); border-color: transparent; }
+    .list-item.completed .item-text { text-decoration: line-through; color: var(--muted-text); }
+    .list-item.completed .item-meta { opacity: 0.5; }
 
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+    .check {
+        appearance: none; -webkit-appearance: none;
+        width: 26px; height: 26px; flex: 0 0 26px;
+        border-radius: 8px; border: 2px solid rgba(148,163,184,0.5);
+        background: rgba(9,9,20,0.5); cursor: pointer; position: relative;
+        transition: background var(--transition-time) ease, border-color var(--transition-time) ease;
+        touch-action: manipulation;
     }
+    .check:checked { background: var(--success-color); border-color: var(--success-color); }
+    .check:checked::after {
+        content: ''; position: absolute; left: 8px; top: 3px; width: 6px; height: 12px;
+        border: solid #06281f; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg);
+    }
+    .check:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
 
-    .list-item.removing {
-        animation: fadeOut 0.5s ease forwards;
+    .item-body { min-width: 0; cursor: pointer; padding: 6px 0; }
+    .item-text { font-size: 0.97rem; font-weight: 500; line-height: 1.3; word-break: break-word; }
+    .item-meta {
+        display: flex; gap: 8px; margin-top: 2px;
+        font-size: 0.72rem; color: var(--muted-text); font-variant-numeric: tabular-nums;
     }
-
-    @keyframes fadeOut {
-        from { opacity: 1; transform: translateY(0); }
-        to { opacity: 0; transform: translateY(10px); }
-    }
-
-    .list-item::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-        transition: left 0.5s ease;
-    }
-
-    .list-item:hover::before {
-        left: 100%;
-    }
-
-    .list-item:hover {
-        transform: translateY(-2px);
-        background: rgba(99, 102, 241, 0.2);
-        border-color: var(--primary-color);
-        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
-    }
-
-    .list-item input[type="checkbox"] {
-        margin-right: 1rem;
-        transform: scale(1.3);
-        flex-shrink: 0;
-        accent-color: var(--success-color);
-        cursor: pointer;
-    }
-
-    .list-item.completed {
-        text-decoration: line-through;
-        opacity: 0.6;
-        background: var(--completed-bg);
-    }
-
-    .item-text {
-        flex: 1;
-        font-size: 16px;
-        font-weight: 500;
-        word-break: break-word;
-        cursor: pointer;
-        padding: 4px 0;
-    }
+    .item-meta:empty { display: none; }
+    .item-meta .qty { color: var(--accent-color); font-weight: 600; }
+    .item-meta .sum { opacity: 0.85; }
 
     .item-edit {
-        flex: 1;
-        font-size: 16px;
-        padding: 0.5rem;
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-        background: var(--item-bg);
-        color: var(--text-color);
-        font-family: 'Poppins', sans-serif;
+        width: 100%; min-width: 0; font-family: inherit; font-size: 16px; padding: 8px 10px;
+        border-radius: 10px; border: 1px solid var(--primary-color);
+        background: rgba(9,9,20,0.75); color: var(--text-color);
     }
+    .item-edit:focus { outline: none; box-shadow: 0 0 0 3px rgba(99,102,241,0.2); }
 
     .delete-btn {
-        background: linear-gradient(135deg, var(--error-color), #dc2626);
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 12px;
-        font-weight: 500;
-        flex-shrink: 0;
-        transition: all var(--transition-time) ease;
-        font-family: 'Poppins', sans-serif;
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 44px; height: 44px; flex: 0 0 44px;
+        border: none; border-radius: 12px; background: rgba(239,68,68,0.09);
+        color: #fca5a5; font-size: 1rem; line-height: 1; cursor: pointer;
+        transition: background var(--transition-time) ease, transform var(--transition-time) ease;
+        touch-action: manipulation;
     }
+    .delete-btn:active { background: rgba(239,68,68,0.26); transform: scale(0.94); }
 
-    .delete-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-    }
-
-    .edit-error {
-        color: var(--error-color);
-        font-size: 12px;
-        margin-top: 0.5rem;
-        font-weight: 500;
-    }
-
-    #feedbackMsg {
-        color: var(--error-color);
-        font-size: 14px;
-        min-height: 20px;
-        margin-bottom: 1rem;
-        text-align: left;
-        font-weight: 500;
-        transition: all var(--transition-time) ease;
-    }
-
-    .feedback-success {
-        color: var(--success-color) !important;
-    }
+    .edit-error { grid-column: 2 / -1; color: #fca5a5; font-size: 0.7rem; font-weight: 500; }
 
     .empty-state {
-        text-align: center;
-        padding: 2rem;
-        color: rgba(255, 255, 255, 0.5);
+        text-align: center; padding: 44px 20px; color: var(--muted-text);
+        font-size: 0.88rem; line-height: 1.6;
+        border: 1px dashed var(--border-color); border-radius: 16px;
     }
+    .empty-state strong { display: block; font-size: 1.9rem; margin-bottom: 8px; font-weight: 400; }
+    .empty-state.hidden { display: none; }
+    .no-results { text-align: center; padding: 30px 16px; color: var(--muted-text); font-size: 0.85rem; }
 
-    .empty-state.hidden {
-        display: none;
+    /* bottom add bar */
+    .add-bar {
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+        padding: 10px 14px calc(10px + var(--safe-bottom));
+        background: rgba(11,11,24,0.93);
+        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        border-top: 1px solid var(--border-color);
     }
+    .add-bar-inner { display: flex; gap: 8px; max-width: 720px; margin: 0 auto; align-items: stretch; }
+    #newItem {
+        flex: 1; min-width: 0; padding: 14px 16px;
+        border: 1px solid var(--border-color); border-radius: 14px;
+        background: rgba(30,41,59,0.7); color: var(--text-color);
+        font-family: inherit; font-size: 16px;
+    }
+    #newItem:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(99,102,241,0.18); }
+    #newItem::placeholder { color: rgba(226,232,240,0.4); }
+    #addBtn {
+        flex: 0 0 auto; min-width: 68px; padding: 0 18px;
+        border: none; border-radius: 14px;
+        background: linear-gradient(135deg, var(--success-color), #059669);
+        color: #fff; font-family: inherit; font-size: 0.95rem; font-weight: 600;
+        cursor: pointer; touch-action: manipulation;
+        transition: transform var(--transition-time) ease, opacity var(--transition-time) ease;
+    }
+    #addBtn:active { transform: scale(0.97); opacity: 0.92; }
 
-    /* Toast notification */
+    /* toast with optional action */
     .toast {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        padding: 1rem 1.5rem;
-        border-radius: 8px;
-        background: var(--container-bg);
-        color: var(--text-color);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        transform: translateY(100px);
-        opacity: 0;
-        transition: all 0.5s ease;
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+        position: fixed; left: 50%; bottom: calc(var(--add-bar-height) + var(--safe-bottom) + 14px);
+        transform: translate(-50%, 20px);
+        display: flex; align-items: center; gap: 12px;
+        max-width: min(92vw, 440px); padding: 11px 14px 11px 18px;
+        border-radius: 12px; background: rgba(20,25,45,0.97);
+        border: 1px solid var(--border-color); color: var(--text-color);
+        font-size: 0.84rem; font-weight: 500;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+        opacity: 0; pointer-events: none;
+        transition: opacity 0.22s ease, transform 0.22s ease;
+        z-index: 60;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+    .toast.success { border-color: rgba(16,185,129,0.45); }
+    .toast.error { border-color: rgba(239,68,68,0.45); }
+    .toast button {
+        border: none; background: transparent; color: var(--accent-color);
+        font-family: inherit; font-size: 0.84rem; font-weight: 600;
+        cursor: pointer; padding: 6px 4px; min-height: 36px;
+    }
+    .toast button:empty { display: none; }
+
+    /* bottom sheet (item detail) */
+    .sheet-backdrop {
+        position: fixed; inset: 0; z-index: 70;
+        background: rgba(3, 5, 15, 0.6); backdrop-filter: blur(3px);
+        opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+    }
+    .sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+
+    .sheet {
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 71;
+        max-width: 720px; margin: 0 auto;
+        padding: 8px 18px calc(18px + var(--safe-bottom));
+        background: #141a2e;
+        border-top-left-radius: 22px; border-top-right-radius: 22px;
+        border-top: 1px solid var(--border-color);
+        transform: translateY(105%); transition: transform 0.26s cubic-bezier(0.4,0,0.2,1);
+        max-height: 88dvh; overflow-y: auto;
+    }
+    .sheet.open { transform: translateY(0); }
+
+    .sheet-handle { width: 42px; height: 4px; border-radius: 999px; margin: 6px auto 16px; background: rgba(148,163,184,0.4); }
+    .sheet h2 { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted-text); margin-bottom: 12px; }
+
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 0.74rem; color: var(--muted-text); margin-bottom: 6px; font-weight: 500; }
+
+    #sheetText, #sheetCat {
+        width: 100%; padding: 13px 14px; border-radius: 12px;
+        border: 1px solid var(--border-color); background: rgba(9,9,20,0.7);
+        color: var(--text-color); font-family: inherit; font-size: 16px;
+    }
+    #sheetText:focus, #sheetCat:focus { outline: none; border-color: var(--primary-color); }
+
+    .qty-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .stepper {
+        display: grid; grid-template-columns: 46px 1fr 46px;
+        align-items: center; border: 1px solid var(--border-color);
+        border-radius: 12px; overflow: hidden; background: rgba(9,9,20,0.7);
+        height: 50px;
+    }
+    .stepper button {
+        border: none; background: transparent; color: var(--text-color);
+        font-size: 1.35rem; height: 100%; cursor: pointer; touch-action: manipulation;
+    }
+    .stepper button:active { background: rgba(99,102,241,0.2); }
+    .stepper span { text-align: center; font-weight: 600; font-size: 1rem; font-variant-numeric: tabular-nums; }
+
+    .price-wrap { position: relative; }
+    .price-wrap input {
+        width: 100%; height: 50px; padding: 0 40px 0 14px; border-radius: 12px;
+        border: 1px solid var(--border-color); background: rgba(9,9,20,0.7);
+        color: var(--text-color); font-family: inherit; font-size: 16px;
+        -moz-appearance: textfield; appearance: textfield;
+    }
+    .price-wrap input::-webkit-outer-spin-button, .price-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .price-wrap input:focus { outline: none; border-color: var(--primary-color); }
+    .price-wrap .euro { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted-text); font-size: 0.9rem; }
+
+    .sheet-total { font-size: 0.78rem; color: var(--muted-text); margin: -4px 0 16px; }
+    .sheet-total b { color: var(--accent-color); }
+
+    .sheet-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-top: 6px; }
+    .sheet-actions button {
+        min-height: 50px; border-radius: 13px; border: none; cursor: pointer;
+        font-family: inherit; font-size: 0.95rem; font-weight: 600; touch-action: manipulation;
+    }
+    #sheetDelete { background: rgba(239,68,68,0.12); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+    #sheetSave { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; }
+    .sheet-actions button:active { transform: scale(0.98); }
+
+    @media (hover: hover) and (pointer: fine) {
+        .list-item:hover { background: rgba(99,102,241,0.14); border-color: rgba(99,102,241,0.45); }
+        .tool-btn:hover { background: rgba(51,65,85,0.7); }
+        .tool-btn.danger:hover { background: rgba(239,68,68,0.14); }
+        .delete-btn:hover { background: rgba(239,68,68,0.2); }
+        #addBtn:hover, .paste-actions button:hover, #sheetSave:hover { filter: brightness(1.08); }
     }
 
-    .toast.show {
-        transform: translateY(0);
-        opacity: 1;
+    @media (max-width: 420px) {
+        h1 { font-size: 1.15rem; }
+        .tool-btn { padding: 8px 11px; font-size: 0.76rem; min-height: 38px; }
+        .main-container { padding: 8px 10px 4px; }
+        .app-header { margin: 0 -10px 8px; padding: 10px 10px 8px; }
     }
 
-    .toast.success {
-        border-left: 4px solid var(--success-color);
-    }
-
-    .toast.error {
-        border-left: 4px solid var(--error-color);
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .main-container { padding: 15px; }
-        h1 { font-size: 2rem; }
-        .container { padding: 1.5rem; }
-        .add-item { flex-direction: column; }
-        .top-bar { justify-content: center; }
-        .top-buttons { 
-            width: 100%; 
-            justify-content: center;
-            margin-top: 1rem;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .top-buttons { flex-direction: column; }
-        #clearCompletedBtn, #clearAllBtn { width: 100%; }
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+        .bg-shape { display: none; }
     }
 </style>
 </head>
 <body>
     <canvas id="particles-canvas"></canvas>
-    <div class="bg-shapes">
-        <div class="bg-shape"></div>
-        <div class="bg-shape"></div>
-        <div class="bg-shape"></div>
-        <div class="bg-shape"></div>
-    </div>
+    <div class="bg-shapes"><div class="bg-shape"></div><div class="bg-shape"></div><div class="bg-shape"></div><div class="bg-shape"></div></div>
 
-    <div class="main-container">
-        <div class="container">
-            <div class="top-bar">
+    <main class="main-container">
+        <header class="app-header">
+            <div class="title-row">
                 <h1>🛒 Shopping List</h1>
-                <div class="top-buttons">
-                    <button id="clearCompletedBtn">Clear Completed</button>
-                    <button id="clearAllBtn">Clear All</button>
-                </div>
+                <span class="counter" id="counter" aria-live="polite">0 of 0</span>
             </div>
-            <div class="add-item">
-                <input type="text" id="newItem" placeholder="Add product..." maxlength="50" autocomplete="off" aria-label="Add product" />
-                <button id="addBtn">Add</button>
+            <div class="progress-track" role="progressbar" aria-label="Items purchased" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressTrack">
+                <div class="progress-bar" id="progressBar"></div>
             </div>
-            <div id="feedbackMsg"></div>
-            <ul class="shopping-list" id="shoppingList" aria-label="Shopping list">
-                <li class="empty-state" id="emptyState">Your shopping list is empty. Add some items!</li>
-            </ul>
+        </header>
+
+        <div class="toolbar">
+            <button id="pasteToggleBtn" class="tool-btn primary" aria-expanded="false" aria-controls="pastePanel">📋 Paste</button>
+            <button id="searchToggleBtn" class="tool-btn" aria-expanded="false" aria-controls="searchRow">🔍 Search</button>
+            <button id="sortBtn" class="tool-btn" title="Sort by store aisle">🏬 By aisle</button>
+            <button id="shareBtn" class="tool-btn">📤 Share</button>
+            <button id="wakeBtn" class="tool-btn" title="Keep the screen on while shopping">💡 Screen on</button>
+            <button id="clearCompletedBtn" class="tool-btn">Clear done</button>
+            <button id="clearAllBtn" class="tool-btn danger">Clear all</button>
+        </div>
+
+        <div class="search-row" id="searchRow">
+            <input type="search" id="searchInput" placeholder="Find an item..." autocomplete="off" aria-label="Filter list" />
+        </div>
+
+        <div class="paste-panel" id="pastePanel">
+            <div class="paste-hint">
+                Paste anything — one product per line, or separated by commas. Bullets, numbering,
+                stray numbers and duplicates are cleaned up. Ending a line with <b>×2</b> sets the quantity.
+            </div>
+            <textarea id="bulkInput" aria-label="Paste multiple products"
+                placeholder="Perejil&#10;Salsa de soja&#10;Aceite de sésamo&#10;Sésamo&#10;Cebolla ×2&#10;Zanahoria"></textarea>
+            <div class="paste-actions">
+                <button id="bulkAddBtn">Add all</button>
+                <button id="bulkCancelBtn">Cancel</button>
+            </div>
+        </div>
+
+        <div id="feedbackMsg" role="status" aria-live="polite"></div>
+
+        <ul class="shopping-list" id="shoppingList" aria-label="Shopping list">
+            <li class="empty-state" id="emptyState">
+                <strong>🛒</strong>
+                Your list is empty.<br>Type below, or paste a whole list at once.
+            </li>
+        </ul>
+    </main>
+
+    <div class="add-bar">
+        <div class="add-bar-inner">
+            <input type="text" id="newItem" placeholder="Add product..." maxlength="60"
+                   autocomplete="off" autocapitalize="sentences" enterkeyhint="done" aria-label="Add product" />
+            <button id="addBtn">Add</button>
         </div>
     </div>
 
-    <div class="toast" id="toast"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite">
+        <span id="toastMsg"></span><button id="toastAction"></button>
+    </div>
+
+    <div class="sheet-backdrop" id="sheetBackdrop"></div>
+    <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+        <div class="sheet-handle"></div>
+        <h2 id="sheetTitle">Item details</h2>
+
+        <div class="field">
+            <label for="sheetText">Product</label>
+            <input type="text" id="sheetText" maxlength="60" autocomplete="off" />
+        </div>
+
+        <div class="qty-row">
+            <div class="field">
+                <label>Quantity</label>
+                <div class="stepper">
+                    <button type="button" id="qtyMinus" aria-label="Decrease quantity">−</button>
+                    <span id="qtyValue">1</span>
+                    <button type="button" id="qtyPlus" aria-label="Increase quantity">+</button>
+                </div>
+            </div>
+            <div class="field">
+                <label for="sheetPrice">Price per unit</label>
+                <div class="price-wrap">
+                    <input type="number" id="sheetPrice" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                    <span class="euro">€</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="field">
+            <label for="sheetCat">Aisle</label>
+            <select id="sheetCat"></select>
+        </div>
+
+        <div class="sheet-total" id="sheetTotal"></div>
+
+        <div class="sheet-actions">
+            <button id="sheetDelete">Delete</button>
+            <button id="sheetSave">Save</button>
+        </div>
+    </div>
 
 <script>
-// Particle system
+/* ---------------------------------------------------------------------------
+   Store aisles — matching is accent-insensitive and word-boundary based, so
+   "sal" does not match "salsa" but does match a bare "sal".
+--------------------------------------------------------------------------- */
+const CATEGORIES = [
+    { id: 'produce',   name: 'Fruit & Veg',     emoji: '🥬', kw: ['perejil','cebolla','zanahoria','tomate','lechuga','patata','patatas','ajo','manzana','platano','naranja','limon','pepino','pimiento','calabacin','brocoli','espinaca','espinacas','champinon','champinones','aguacate','uva','uvas','fresa','fresas','pera','coliflor','judia','judias','guisante','guisantes','setas','esparrago','esparragos','jengibre','cilantro','albahaca','fruta','verdura','apfel','banane','zwiebel','karotte','mohre','kartoffel','salat','gurke','paprika','obst','gemuse','onion','carrot','potato','apple','banana','tomato','lettuce','garlic','lemon','fruit','veg','herb'] },
+    { id: 'bakery',    name: 'Bread & Bakery',  emoji: '🥖', kw: ['pan','baguette','bollo','bollos','croissant','magdalena','brot','brotchen','toast','brotzeit','brezel','bread','roll','bagel','bakery'] },
+    { id: 'meat',      name: 'Meat & Fish',     emoji: '🥩', kw: ['carne','pollo','ternera','cerdo','jamon','salchicha','salchichas','chorizo','bacon','embutido','pescado','atun','gambas','filete','fleisch','wurst','hahnchen','haehnchen','lachs','fisch','meat','chicken','beef','pork','ham','fish','salmon','tuna','sausage'] },
+    { id: 'dairy',     name: 'Dairy & Eggs',    emoji: '🧀', kw: ['leche','queso','mantequilla','yogur','nata','crema','huevo','huevos','requeson','milch','kase','butter','joghurt','sahne','eier','quark','skyr','milk','cheese','egg','eggs','yogurt','cream'] },
+    { id: 'frozen',    name: 'Frozen',          emoji: '🧊', kw: ['congelado','congelados','helado','helados','tiefkuhl','tiefkuehl','eis','frozen','icecream'] },
+    { id: 'pantry',    name: 'Pantry & Cooking',emoji: '🥫', kw: ['aceite','salsa','caldo','sopa','arroz','pasta','espagueti','espaguetis','harina','azucar','lentejas','garbanzo','garbanzos','conserva','conservas','vinagre','miel','cafe','te','soja','fideos','tomate frito','ol','sosse','sosse','bruehe','brühe','reis','nudeln','mehl','zucker','oil','sauce','broth','rice','flour','sugar','noodles','vinegar','honey','coffee','stock','soup'] },
+    { id: 'spices',    name: 'Spices & Herbs',  emoji: '🧂', kw: ['sal','pimienta','especias','especia','sesamo','comino','pimenton','oregano','canela','nuez moscada','curry','salz','pfeffer','gewurz','gewuerz','sesam','zimt','salt','pepper','spice','sesame','cinnamon','cumin'] },
+    { id: 'drinks',    name: 'Drinks',          emoji: '🥤', kw: ['agua','zumo','cerveza','vino','refresco','coca','cola','batido','wasser','saft','bier','wein','water','juice','beer','wine','soda','drink'] },
+    { id: 'snacks',    name: 'Snacks & Sweets', emoji: '🍫', kw: ['chocolate','galleta','galletas','patatas fritas','dulce','dulces','dulcecitos','caramelo','caramelos','chuches','snack','schokolade','keks','chips','suss','suess','candy','sweet','cookie','cookies'] },
+    { id: 'household', name: 'Household',       emoji: '🧼', kw: ['papel','papel higienico','limpiador','detergente','jabon','pasta de dientes','bolsas','servilletas','klopapier','spulmittel','seife','zahnpasta','waschmittel','soap','detergent','cleaner','toilet paper','bags','tissues'] },
+    { id: 'other',     name: 'Other',           emoji: '📦', kw: [] }
+];
+const CAT_BY_ID = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
+
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss');
+
+function detectCategory(text) {
+    const t = norm(text);
+    for (const cat of CATEGORIES) {
+        for (const kw of cat.kw) {
+            const k = norm(kw);
+            const re = new RegExp(`(^|[^a-z0-9])${k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[^a-z0-9])`);
+            if (re.test(t)) return cat.id;
+        }
+    }
+    return 'other';
+}
+
+/* ------------------------------- state ---------------------------------- */
+const STORE_KEY = 'shoppingListV2';
+const LEGACY_KEY = 'shoppingList';
+
+/* --------------------------- particle background ------------------------ */
 class ParticleSystem {
     constructor(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.particles = [];
-        this.mouse = { x: 0, y: 0 };
-        this.connectionDistance = 150;
-        this.maxParticles = 100;
-        
+        this.mouse = { x: -9999, y: -9999 };
+        this.maxParticles = Math.min(60, Math.round(window.innerWidth / 24));
+        this.running = true;
         this.resize();
         this.init();
-        this.bindEvents();
+        window.addEventListener('resize', () => { this.resize(); this.init(); });
+        window.addEventListener('mousemove', e => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
+        document.addEventListener('visibilitychange', () => {
+            this.running = !document.hidden;
+            if (this.running) requestAnimationFrame(() => this.animate());
+        });
         this.animate();
     }
-
-    resize() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
-    }
-
+    resize() { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; }
     init() {
-        this.particles = [];
-        for (let i = 0; i < this.maxParticles; i++) {
-            this.particles.push({
-                x: Math.random() * this.canvas.width,
-                y: Math.random() * this.canvas.height,
-                vx: (Math.random() - 0.5) * 0.5,
-                vy: (Math.random() - 0.5) * 0.5,
-                size: Math.random() * 3 + 1,
-                opacity: Math.random() * 0.5 + 0.2
-            });
+        this.particles = Array.from({ length: this.maxParticles }, () => ({
+            x: Math.random() * this.canvas.width,
+            y: Math.random() * this.canvas.height,
+            vx: (Math.random() - 0.5) * 0.35,
+            vy: (Math.random() - 0.5) * 0.35,
+            size: Math.random() * 2 + 1,
+            opacity: Math.random() * 0.4 + 0.1
+        }));
+    }
+    update() {
+        for (const p of this.particles) {
+            const dx = this.mouse.x - p.x, dy = this.mouse.y - p.y;
+            const d = Math.hypot(dx, dy);
+            if (d < 170 && d > 0) { const f = (170 - d) / 170; p.vx += (dx / d) * f * 0.008; p.vy += (dy / d) * f * 0.008; }
+            p.x += p.vx; p.y += p.vy;
+            if (p.x < 0 || p.x > this.canvas.width) p.vx *= -1;
+            if (p.y < 0 || p.y > this.canvas.height) p.vy *= -1;
+            p.vx *= 0.99; p.vy *= 0.99;
         }
     }
-
-    bindEvents() {
-        window.addEventListener('resize', () => this.resize());
-        window.addEventListener('mousemove', (e) => {
-            this.mouse.x = e.clientX;
-            this.mouse.y = e.clientY;
-        });
-    }
-
-    update() {
-        this.particles.forEach(particle => {
-            const dx = this.mouse.x - particle.x;
-            const dy = this.mouse.y - particle.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance < 200) {
-                const force = (200 - distance) / 200;
-                particle.vx += (dx / distance) * force * 0.01;
-                particle.vy += (dy / distance) * force * 0.01;
-            }
-
-            particle.x += particle.vx;
-            particle.y += particle.vy;
-
-            if (particle.x < 0 || particle.x > this.canvas.width) particle.vx *= -1;
-            if (particle.y < 0 || particle.y > this.canvas.height) particle.vy *= -1;
-
-            particle.x = Math.max(0, Math.min(this.canvas.width, particle.x));
-            particle.y = Math.max(0, Math.min(this.canvas.height, particle.y));
-
-            particle.vx *= 0.99;
-            particle.vy *= 0.99;
-        });
-    }
-
     draw() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        this.ctx.strokeStyle = 'rgba(99, 102, 241, 0.1)';
-        this.ctx.lineWidth = 1;
-        
+        const ctx = this.ctx;
+        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         for (let i = 0; i < this.particles.length; i++) {
             for (let j = i + 1; j < this.particles.length; j++) {
-                const dx = this.particles[i].x - this.particles[j].x;
-                const dy = this.particles[i].y - this.particles[j].y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance < this.connectionDistance) {
-                    const opacity = 1 - (distance / this.connectionDistance);
-                    this.ctx.strokeStyle = `rgba(99, 102, 241, ${opacity * 0.2})`;
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(this.particles[i].x, this.particles[i].y);
-                    this.ctx.lineTo(this.particles[j].x, this.particles[j].y);
-                    this.ctx.stroke();
+                const a = this.particles[i], b = this.particles[j];
+                const d = Math.hypot(a.x - b.x, a.y - b.y);
+                if (d < 140) {
+                    ctx.strokeStyle = `rgba(99,102,241,${(1 - d / 140) * 0.16})`;
+                    ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
                 }
             }
         }
-        
-        this.particles.forEach(particle => {
-            this.ctx.beginPath();
-            this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-            this.ctx.fillStyle = `rgba(99, 102, 241, ${particle.opacity})`;
-            this.ctx.fill();
-            
-            this.ctx.beginPath();
-            this.ctx.arc(particle.x, particle.y, particle.size * 3, 0, Math.PI * 2);
-            this.ctx.fillStyle = `rgba(99, 102, 241, ${particle.opacity * 0.1})`;
-            this.ctx.fill();
-        });
+        for (const p of this.particles) {
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(139,92,246,${p.opacity})`; ctx.fill();
+        }
     }
-
-    animate() {
-        this.update();
-        this.draw();
-        requestAnimationFrame(() => this.animate());
-    }
+    animate() { if (!this.running) return; this.update(); this.draw(); requestAnimationFrame(() => this.animate()); }
 }
 
-// Shopping List Application
+/* --------------------------------- app ---------------------------------- */
 class ShoppingListApp {
     constructor() {
-        this.newItemInput = document.getElementById('newItem');
-        this.addBtn = document.getElementById('addBtn');
-        this.shoppingList = document.getElementById('shoppingList');
-        this.clearCompletedBtn = document.getElementById('clearCompletedBtn');
-        this.clearAllBtn = document.getElementById('clearAllBtn');
-        this.feedbackMsg = document.getElementById('feedbackMsg');
-        this.emptyState = document.getElementById('emptyState');
-        this.toast = document.getElementById('toast');
-        
-        this.init();
+        this.el = {
+            list: document.getElementById('shoppingList'),
+            empty: document.getElementById('emptyState'),
+            input: document.getElementById('newItem'),
+            addBtn: document.getElementById('addBtn'),
+            feedback: document.getElementById('feedbackMsg'),
+            counter: document.getElementById('counter'),
+            progressBar: document.getElementById('progressBar'),
+            progressTrack: document.getElementById('progressTrack'),
+            pasteToggle: document.getElementById('pasteToggleBtn'),
+            pastePanel: document.getElementById('pastePanel'),
+            bulkInput: document.getElementById('bulkInput'),
+            bulkAdd: document.getElementById('bulkAddBtn'),
+            bulkCancel: document.getElementById('bulkCancelBtn'),
+            searchToggle: document.getElementById('searchToggleBtn'),
+            searchRow: document.getElementById('searchRow'),
+            searchInput: document.getElementById('searchInput'),
+            sortBtn: document.getElementById('sortBtn'),
+            shareBtn: document.getElementById('shareBtn'),
+            wakeBtn: document.getElementById('wakeBtn'),
+            clearCompleted: document.getElementById('clearCompletedBtn'),
+            clearAll: document.getElementById('clearAllBtn'),
+            toast: document.getElementById('toast'),
+            toastMsg: document.getElementById('toastMsg'),
+            toastAction: document.getElementById('toastAction'),
+            sheet: document.getElementById('sheet'),
+            sheetBackdrop: document.getElementById('sheetBackdrop'),
+            sheetText: document.getElementById('sheetText'),
+            sheetCat: document.getElementById('sheetCat'),
+            sheetPrice: document.getElementById('sheetPrice'),
+            sheetTotal: document.getElementById('sheetTotal'),
+            sheetDelete: document.getElementById('sheetDelete'),
+            sheetSave: document.getElementById('sheetSave'),
+            qtyValue: document.getElementById('qtyValue'),
+            qtyMinus: document.getElementById('qtyMinus'),
+            qtyPlus: document.getElementById('qtyPlus')
+        };
+
+        this.items = [];
+        this.groupByAisle = localStorage.getItem('sl_group') !== '0';
+        this.hideDone = false;
+        this.query = '';
+        this.editingId = null;
+        this.draftQty = 1;
+        this.wakeLock = null;
+        this._toastTimer = null;
+
+        this.buildCategorySelect();
+        this.bind();
+        this.load();
+        this.render();
+        this.initBackground();
     }
-    
-    init() {
-        // Initialize particle system
+
+    initBackground() {
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const small = window.innerWidth < 768;
+        const saveData = navigator.connection && navigator.connection.saveData;
         const canvas = document.getElementById('particles-canvas');
+        if (reduce || small || saveData) { canvas.style.display = 'none'; return; }
         new ParticleSystem(canvas);
-        
-        // Bind events
-        this.addBtn.addEventListener('click', () => this.addItem());
-        this.newItemInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                this.addItem();
-            }
-        });
-        
-        this.clearCompletedBtn.addEventListener('click', () => this.clearCompleted());
-        this.clearAllBtn.addEventListener('click', () => this.clearAll());
-        
-        // Initial load
-        this.loadList();
     }
-    
-    // Load shopping list from localStorage
-    loadList() {
-        this.shoppingList.innerHTML = '';
-        const items = JSON.parse(localStorage.getItem('shoppingList') || '[]');
-        
-        if (items.length === 0) {
-            this.emptyState.classList.remove('hidden');
-            // Add default items if empty
-            ['Bread', 'Milk', 'Eggs'].forEach(item => this.addListItem(item, false, true));
-            this.saveList();
+
+    /* ----------------------------- storage -------------------------------- */
+    load() {
+        try {
+            const raw = localStorage.getItem(STORE_KEY);
+            if (raw) {
+                this.items = JSON.parse(raw).map(i => ({
+                    id: i.id || this.uid(),
+                    text: i.text,
+                    qty: i.qty || 1,
+                    price: i.price || 0,
+                    cat: i.cat || detectCategory(i.text),
+                    done: !!i.done,
+                    ts: i.ts || Date.now()
+                }));
+                return;
+            }
+            const legacy = JSON.parse(localStorage.getItem(LEGACY_KEY) || '[]');
+            this.items = legacy
+                .filter(i => i && i.text)
+                .map(i => ({
+                    id: this.uid(), text: i.text, qty: 1, price: 0,
+                    cat: detectCategory(i.text), done: !!i.completed, ts: Date.now()
+                }));
+            if (this.items.length) this.save();
+        } catch (e) {
+            console.warn('Could not read saved list', e);
+            this.items = [];
+        }
+    }
+
+    save() {
+        try { localStorage.setItem(STORE_KEY, JSON.stringify(this.items)); }
+        catch (e) { console.warn('Could not save list', e); }
+    }
+
+    uid() { return Math.random().toString(36).slice(2, 10); }
+
+    /* ------------------------------ events -------------------------------- */
+    bind() {
+        this.el.addBtn.addEventListener('click', () => this.addFromInput());
+        this.el.input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') { e.preventDefault(); this.addFromInput(); }
+        });
+        this.el.input.addEventListener('paste', e => {
+            const pasted = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+            if (this.parseBulk(pasted).length > 1) { e.preventDefault(); this.addBulk(pasted); }
+        });
+
+        this.el.pasteToggle.addEventListener('click', () => this.togglePaste());
+        this.el.bulkAdd.addEventListener('click', () => this.importBulk());
+        this.el.bulkCancel.addEventListener('click', () => this.togglePaste(false));
+        this.el.bulkInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); this.importBulk(); }
+            if (e.key === 'Escape') this.togglePaste(false);
+        });
+
+        this.el.searchToggle.addEventListener('click', () => this.toggleSearch());
+        this.el.searchInput.addEventListener('input', () => { this.query = this.el.searchInput.value.trim(); this.render(); });
+
+        this.el.sortBtn.addEventListener('click', () => {
+            this.groupByAisle = !this.groupByAisle;
+            localStorage.setItem('sl_group', this.groupByAisle ? '1' : '0');
+            this.render();
+            this.showToast(this.groupByAisle ? 'Grouped by aisle' : 'Shown in added order');
+        });
+
+        this.el.shareBtn.addEventListener('click', () => this.share());
+        this.el.wakeBtn.addEventListener('click', () => this.toggleWakeLock());
+        this.el.clearCompleted.addEventListener('click', () => this.clearCompleted());
+        this.el.clearAll.addEventListener('click', () => this.clearAll());
+
+        // sheet
+        this.el.sheetBackdrop.addEventListener('click', () => this.closeSheet());
+        this.el.sheetSave.addEventListener('click', () => this.saveSheet());
+        this.el.sheetDelete.addEventListener('click', () => { const id = this.editingId; this.closeSheet(); this.deleteItem(id); });
+        this.el.qtyMinus.addEventListener('click', () => this.setDraftQty(this.draftQty - 1));
+        this.el.qtyPlus.addEventListener('click', () => this.setDraftQty(this.draftQty + 1));
+        this.el.sheetPrice.addEventListener('input', () => this.updateSheetTotal());
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && this.el.sheet.classList.contains('open')) this.closeSheet(); });
+    }
+
+    buildCategorySelect() {
+        this.el.sheetCat.innerHTML = CATEGORIES
+            .map(c => `<option value="${c.id}">${c.emoji} ${c.name}</option>`).join('');
+    }
+
+    /* ------------------------------ render -------------------------------- */
+    render() {
+        const q = norm(this.query);
+        let items = this.items.slice();
+
+        if (q) items = items.filter(i => norm(i.text).includes(q));
+        else if (this.hideDone) items = items.filter(i => !i.done);
+
+        const list = this.el.list;
+        [...list.children].forEach(c => { if (c !== this.el.empty) c.remove(); });
+        list.appendChild(this.el.empty);
+
+        const pending = items.filter(i => !i.done);
+        const done = items.filter(i => i.done);
+
+        if (this.groupByAisle) {
+            const buckets = new Map();
+            for (const it of pending) {
+                if (!buckets.has(it.cat)) buckets.set(it.cat, []);
+                buckets.get(it.cat).push(it);
+            }
+            for (const cat of CATEGORIES) {
+                const group = buckets.get(cat.id);
+                if (!group) continue;
+                list.appendChild(this.groupHeader(cat.emoji, cat.name, group.length));
+                group.sort((a, b) => a.ts - b.ts).forEach(i => list.appendChild(this.row(i)));
+            }
         } else {
-            this.emptyState.classList.add('hidden');
-            items.forEach(item => this.addListItem(item.text, item.completed, false));
-        }
-    }
-    
-    // Add a new list item to the DOM
-    addListItem(text, completed = false, animate = true) {
-        if (animate) {
-            this.emptyState.classList.add('hidden');
-        }
-        
-        const listItem = document.createElement('li');
-        listItem.className = 'list-item';
-        if (completed) listItem.classList.add('completed');
-        if (!animate) {
-            listItem.style.animation = 'none';
+            pending.sort((a, b) => a.ts - b.ts).forEach(i => list.appendChild(this.row(i)));
         }
 
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.setAttribute('aria-label', 'Mark as purchased');
-        checkbox.checked = completed;
-        checkbox.addEventListener('change', () => {
-            listItem.classList.toggle('completed', checkbox.checked);
-            this.saveList();
-            this.showToast('Item updated', 'success');
-        });
-
-        const span = document.createElement('span');
-        span.className = 'item-text';
-        span.textContent = text;
-        span.setAttribute('tabindex', '0');
-        span.setAttribute('aria-label', 'Product');
-        
-        // Edit on double click
-        span.addEventListener('dblclick', () => {
-            this.editItem(listItem, span);
-        });
-
-        // Edit on Enter key when focused
-        span.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.editItem(listItem, span);
-            }
-        });
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-btn';
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.setAttribute('aria-label', 'Delete product');
-        deleteBtn.addEventListener('click', () => {
-            this.deleteItem(listItem);
-        });
-
-        listItem.appendChild(checkbox);
-        listItem.appendChild(span);
-        listItem.appendChild(deleteBtn);
-
-        this.shoppingList.appendChild(listItem);
-        return listItem;
-    }
-    
-    // Edit an existing item
-    editItem(listItem, span) {
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.value = span.textContent;
-        input.className = 'item-edit';
-        input.setAttribute('aria-label', 'Edit product');
-        input.addEventListener('blur', () => this.finishEdit(listItem, span, input));
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.finishEdit(listItem, span, input);
-        });
-        
-        listItem.replaceChild(input, span);
-        input.focus();
-        input.select();
-    }
-    
-    // Finish editing an item
-    finishEdit(listItem, span, input) {
-        const newText = input.value.trim();
-        const prevError = listItem.querySelector('.edit-error');
-        if (prevError) prevError.remove();
-
-        if (newText && !this.isDuplicate(newText, listItem)) {
-            span.textContent = newText;
-            listItem.replaceChild(span, input);
-            this.saveList();
-            this.showToast('Item updated', 'success');
-        } else if (this.isDuplicate(newText, listItem)) {
-            let errorMsg = document.createElement('div');
-            errorMsg.className = 'edit-error';
-            errorMsg.textContent = 'Duplicate product';
-            listItem.appendChild(errorMsg);
-            input.focus();
-            setTimeout(() => {
-                if (errorMsg.parentNode) errorMsg.remove();
-            }, 2000);
-        } else {
-            listItem.replaceChild(span, input);
-            this.saveList();
+        if (done.length) {
+            list.appendChild(this.groupHeader('✓', 'In the basket', done.length));
+            done.sort((a, b) => a.ts - b.ts).forEach(i => list.appendChild(this.row(i)));
         }
+
+        if (!items.length && q) {
+            const p = document.createElement('li');
+            p.className = 'no-results';
+            p.textContent = `Nothing matches “${this.query}”.`;
+            list.appendChild(p);
+        }
+
+        this.el.empty.classList.toggle('hidden', items.length > 0 || !!q);
+        this.el.sortBtn.classList.toggle('active', this.groupByAisle);
+        this.el.sortBtn.textContent = this.groupByAisle ? '🏬 By aisle' : '↕️ As added';
+        this.updateStats();
     }
-    
-    // Delete an item with animation
-    deleteItem(listItem) {
-        listItem.classList.add('removing');
-        setTimeout(() => {
-            if (listItem.parentNode) {
-                this.shoppingList.removeChild(listItem);
-                this.saveList();
-                
-                if (this.shoppingList.children.length === 1) { // Only empty state remains
-                    this.emptyState.classList.remove('hidden');
-                }
-                
-                this.showToast('Item deleted', 'success');
-            }
-        }, 500);
+
+    groupHeader(emoji, name, count) {
+        const li = document.createElement('li');
+        li.className = 'group-header';
+        li.innerHTML = `<span>${emoji} ${name}</span><span class="count">${count}</span>`;
+        return li;
     }
-    
-    // Check for duplicate items
-    isDuplicate(text, excludeItem = null) {
-        return Array.from(this.shoppingList.querySelectorAll('.list-item')).some(li => {
-            if (li === excludeItem || li.classList.contains('removing')) return false;
-            const itemText = li.querySelector('.item-text');
-            return itemText && itemText.textContent.toLowerCase() === text.toLowerCase();
-        });
+
+    row(item) {
+        const li = document.createElement('li');
+        li.className = 'list-item' + (item.done ? ' completed' : '');
+        li.dataset.id = item.id;
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.className = 'check';
+        cb.checked = item.done;
+        cb.setAttribute('aria-label', `${item.text} bought`);
+        cb.addEventListener('change', () => this.toggleDone(item.id));
+
+        const body = document.createElement('div');
+        body.className = 'item-body';
+        body.setAttribute('role', 'button');
+        body.setAttribute('tabindex', '0');
+        body.setAttribute('aria-label', `${item.text}, edit details`);
+        body.innerHTML = `<div class="item-text"></div><div class="item-meta"></div>`;
+        body.querySelector('.item-text').textContent = item.text;
+        const meta = body.querySelector('.item-meta');
+        if (item.qty > 1) {
+            const s = document.createElement('span');
+            s.className = 'qty';
+            s.textContent = `${item.qty}×`;
+            meta.appendChild(s);
+        }
+        if (item.price > 0) {
+            const s = document.createElement('span');
+            s.className = 'sum';
+            s.textContent = this.money(item.price * item.qty);
+            meta.appendChild(s);
+        }
+        body.addEventListener('click', () => this.openSheet(item.id));
+        body.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.openSheet(item.id); } });
+
+        const del = document.createElement('button');
+        del.className = 'delete-btn';
+        del.textContent = '✕';
+        del.setAttribute('aria-label', `Delete ${item.text}`);
+        del.addEventListener('click', () => this.deleteItem(item.id));
+
+        li.append(cb, body, del);
+        return li;
     }
-    
-    // Add a new item from the input
-    addItem() {
-        const itemText = this.newItemInput.value.trim();
-        this.feedbackMsg.textContent = '';
-        this.feedbackMsg.classList.remove('feedback-success');
-        
-        if (!itemText) {
-            this.feedbackMsg.textContent = 'Please enter a product name';
+
+    updateStats() {
+        const total = this.items.length;
+        const done = this.items.filter(i => i.done).length;
+        const pct = total ? Math.round((done / total) * 100) : 0;
+        const spent = this.items.filter(i => i.done).reduce((s, i) => s + i.price * i.qty, 0);
+        const left = this.items.filter(i => !i.done).reduce((s, i) => s + i.price * i.qty, 0);
+
+        let text = total ? `<strong>${done}</strong> of ${total}` : '0 of 0';
+        if (left > 0) text += ` · ${this.money(left)}`;
+        this.el.counter.innerHTML = text;
+
+        this.el.progressBar.style.width = pct + '%';
+        this.el.progressTrack.setAttribute('aria-valuenow', String(pct));
+        this.el.progressTrack.setAttribute('aria-valuetext', `${done} of ${total} bought${spent ? ', ' + this.money(spent) + ' spent' : ''}`);
+    }
+
+    money(n) { return '€' + n.toFixed(2).replace('.', ','); }
+
+    /* ------------------------------- add ---------------------------------- */
+    addFromInput() {
+        const text = this.el.input.value.trim();
+        this.setFeedback('');
+        if (!text) { this.setFeedback('Type a product first.'); return; }
+
+        const { name, qty } = this.splitQty(text);
+        if (this.isDuplicate(name)) {
+            this.setFeedback('That product is already on the list.');
+            this.el.input.select();
             return;
         }
-        
-        if (this.isDuplicate(itemText)) {
-            this.feedbackMsg.textContent = 'This product is already in the list.';
-            return;
-        }
-        
-        this.addListItem(itemText, false);
-        this.newItemInput.value = '';
-        this.newItemInput.focus();
-        this.saveList();
-        this.feedbackMsg.textContent = 'Item added successfully!';
-        this.feedbackMsg.classList.add('feedback-success');
-        this.showToast('Item added', 'success');
-        
-        setTimeout(() => {
-            this.feedbackMsg.textContent = '';
-            this.feedbackMsg.classList.remove('feedback-success');
-        }, 2000);
+        this.items.push({ id: this.uid(), text: name, qty, price: 0, cat: detectCategory(name), done: false, ts: Date.now() });
+        this.save();
+        this.el.input.value = '';
+        this.render();
+        this.showToast('Item added');
+        if (window.innerWidth >= 768) this.el.input.focus();
     }
-    
-    // Clear all completed items
+
+    splitQty(text) {
+        const m = text.match(/^(.*?)[\s]*[x×*]\s*(\d{1,3})$/i);
+        if (m && m[1].trim()) return { name: m[1].trim(), qty: Math.max(1, parseInt(m[2], 10)) };
+        return { name: text, qty: 1 };
+    }
+
+    isDuplicate(text, excludeId = null) {
+        const n = norm(text.trim());
+        return this.items.some(i => i.id !== excludeId && norm(i.text) === n);
+    }
+
+    /* ------------------------------ bulk paste ---------------------------- */
+    togglePaste(force) {
+        const open = typeof force === 'boolean' ? force : !this.el.pastePanel.classList.contains('open');
+        this.el.pastePanel.classList.toggle('open', open);
+        this.el.pasteToggle.setAttribute('aria-expanded', String(open));
+        this.el.pasteToggle.textContent = open ? '✕ Close' : '📋 Paste';
+        if (open) this.el.bulkInput.focus(); else this.el.bulkInput.value = '';
+    }
+
+    parseBulk(raw) {
+        if (!raw) return [];
+        let chunks = String(raw).replace(/\r\n?/g, '\n').split('\n');
+
+        if (chunks.length === 1) chunks = chunks[0].split(/[;,]/);
+        else chunks = chunks.flatMap(line => line.split(';'));
+
+        const seen = new Set();
+        const out = [];
+        for (let chunk of chunks) {
+            let text = chunk
+                .replace(/^\s*(?:[-*•·◦‣–—>#]+|\d+[.)\-:]\s*)\s*/, '')
+                .replace(/\s+/g, ' ')
+                .replace(/[\s,;.]+$/, '')
+                .trim();
+            if (!text) continue;
+            if (/^[\d\s.,\/-]+$/.test(text)) continue;
+            if (text.length > 60) text = text.slice(0, 60).trim();
+            const key = norm(text);
+            if (seen.has(key)) continue;
+            seen.add(key);
+            out.push(text);
+        }
+        return out;
+    }
+
+    addBulk(raw) {
+        const lines = this.parseBulk(raw);
+        if (!lines.length) {
+            this.setFeedback('Nothing to add — paste at least one product.');
+            this.showToast('Nothing to add', 'error');
+            return { added: 0, skipped: 0 };
+        }
+
+        let added = 0, skipped = 0;
+        for (const line of lines) {
+            const { name, qty } = this.splitQty(line);
+            if (this.isDuplicate(name)) { skipped++; continue; }
+            this.items.push({ id: this.uid(), text: name, qty, price: 0, cat: detectCategory(name), done: false, ts: Date.now() });
+            added++;
+        }
+        if (added) { this.save(); this.render(); }
+
+        const summary = `Added ${added} item${added === 1 ? '' : 's'}` +
+            (skipped ? ` · ${skipped} duplicate${skipped === 1 ? '' : 's'} skipped` : '');
+        this.setFeedback(summary, added > 0);
+        this.showToast(summary, added > 0 ? 'success' : 'error');
+        setTimeout(() => this.setFeedback(''), 3000);
+        return { added, skipped };
+    }
+
+    importBulk() {
+        const r = this.addBulk(this.el.bulkInput.value);
+        if (r.added) this.togglePaste(false);
+    }
+
+    setFeedback(msg, ok = false) {
+        this.el.feedback.textContent = msg;
+        this.el.feedback.classList.toggle('feedback-success', ok);
+    }
+
+    /* ------------------------------ actions -------------------------------- */
+    toggleDone(id) {
+        const it = this.items.find(i => i.id === id);
+        if (!it) return;
+        it.done = !it.done;
+        this.save();
+        this.render();
+        this.showToast(it.done ? `${it.text} in the basket` : `${it.text} back on the list`);
+    }
+
+    deleteItem(id) {
+        const idx = this.items.findIndex(i => i.id === id);
+        if (idx === -1) return;
+        const [removed] = this.items.splice(idx, 1);
+        this.save();
+        this.render();
+        this.showToast(`${removed.text} deleted`, 'success', 'Undo', () => {
+            this.items.splice(idx, 0, removed);
+            this.save();
+            this.render();
+        });
+    }
+
     clearCompleted() {
-        const completedItems = this.shoppingList.querySelectorAll('.list-item.completed');
-        if (completedItems.length === 0) {
-            this.showToast('No completed items to clear', 'error');
-            return;
-        }
-        
-        if (!confirm(`Are you sure you want to remove ${completedItems.length} completed item(s)?`)) {
-            return;
-        }
-        
-        let removed = 0;
-        completedItems.forEach(item => {
-            if (!item.classList.contains('removing')) {
-                this.deleteItem(item);
-                removed++;
-            }
+        const done = this.items.filter(i => i.done);
+        if (!done.length) { this.showToast('Nothing checked off yet', 'error'); return; }
+        if (!confirm(`Remove ${done.length} item(s) already in the basket?`)) return;
+
+        const snapshot = this.items.slice();
+        this.items = this.items.filter(i => !i.done);
+        this.save();
+        this.render();
+        this.showToast('Bought items cleared', 'success', 'Undo', () => {
+            this.items = snapshot;
+            this.save();
+            this.render();
         });
-        
-        setTimeout(() => {
-            this.showToast(`Removed ${removed} completed item(s)`, 'success');
-        }, 600);
     }
-    
-    // Clear all items
+
     clearAll() {
-        const allItems = this.shoppingList.querySelectorAll('.list-item:not(.removing)');
-        if (allItems.length === 0) {
-            this.showToast('The list is already empty', 'error');
+        if (!this.items.length) { this.showToast('The list is already empty', 'error'); return; }
+        if (!confirm(`Remove all ${this.items.length} items?`)) return;
+
+        const snapshot = this.items.slice();
+        this.items = [];
+        this.save();
+        this.render();
+        this.showToast('List cleared', 'success', 'Undo', () => {
+            this.items = snapshot;
+            this.save();
+            this.render();
+        });
+    }
+
+    /* ------------------------------- search -------------------------------- */
+    toggleSearch(force) {
+        const open = typeof force === 'boolean' ? force : !this.el.searchRow.classList.contains('open');
+        this.el.searchRow.classList.toggle('open', open);
+        this.el.searchToggle.setAttribute('aria-expanded', String(open));
+        this.el.searchToggle.classList.toggle('active', open);
+        if (open) this.el.searchInput.focus();
+        else { this.el.searchInput.value = ''; this.query = ''; this.render(); }
+    }
+
+    /* -------------------------------- share -------------------------------- */
+    async share() {
+        const pending = this.items.filter(i => !i.done);
+        if (!pending.length) { this.showToast('Nothing to share', 'error'); return; }
+        const text = '🛒 Shopping list\n' + pending
+            .map(i => `• ${i.text}${i.qty > 1 ? ` ×${i.qty}` : ''}`)
+            .join('\n');
+
+        try {
+            if (navigator.share) {
+                await navigator.share({ title: 'Shopping list', text });
+                return;
+            }
+            await navigator.clipboard.writeText(text);
+            this.showToast('List copied to clipboard');
+        } catch (e) {
+            if (e && e.name === 'AbortError') return;
+            this.showToast('Could not share the list', 'error');
+        }
+    }
+
+    /* ------------------------------ wake lock ------------------------------ */
+    async toggleWakeLock() {
+        if (!('wakeLock' in navigator)) { this.showToast('Screen lock not supported here', 'error'); return; }
+
+        if (this.wakeLock) {
+            try { await this.wakeLock.release(); } catch (e) {}
+            this.wakeLock = null;
+            this.el.wakeBtn.classList.remove('active');
+            this.showToast('Screen can sleep again');
             return;
         }
-        
-        if (!confirm(`Are you sure you want to remove all ${allItems.length} items?`)) {
-            return;
+        try {
+            this.wakeLock = await navigator.wakeLock.request('screen');
+            this.el.wakeBtn.classList.add('active');
+            this.wakeLock.addEventListener('release', () => {
+                this.wakeLock = null;
+                this.el.wakeBtn.classList.remove('active');
+            });
+            this.showToast('Screen stays on');
+        } catch (e) {
+            this.showToast('Could not keep the screen on', 'error');
         }
-        
-        let removed = 0;
-        allItems.forEach(item => {
-            if (!item.classList.contains('removing')) {
-                this.deleteItem(item);
-                removed++;
-            }
-        });
-        
-        setTimeout(() => {
-            this.showToast(`Removed all ${removed} items`, 'success');
-        }, 600);
     }
-    
-    // Save shopping list to localStorage
-    saveList() {
-        const items = [];
-        this.shoppingList.querySelectorAll('.list-item:not(.removing)').forEach(li => {
-            const itemText = li.querySelector('.item-text');
-            if (itemText) {
-                items.push({
-                    text: itemText.textContent,
-                    completed: li.classList.contains('completed')
-                });
-            }
-        });
-        localStorage.setItem('shoppingList', JSON.stringify(items));
+
+    /* ------------------------------- sheet --------------------------------- */
+    openSheet(id) {
+        const it = this.items.find(i => i.id === id);
+        if (!it) return;
+        this.editingId = id;
+        this.draftQty = it.qty;
+        this.el.sheetText.value = it.text;
+        this.el.sheetCat.value = it.cat;
+        this.el.sheetPrice.value = it.price ? String(it.price) : '';
+        this.el.qtyValue.textContent = it.qty;
+        this.updateSheetTotal();
+        this.el.sheet.classList.add('open');
+        this.el.sheetBackdrop.classList.add('open');
+        document.body.style.overflow = 'hidden';
     }
-    
-    // Show toast notification
-    showToast(message, type = 'success') {
-        this.toast.textContent = message;
-        this.toast.className = `toast ${type} show`;
-        
-        setTimeout(() => {
-            this.toast.classList.remove('show');
-        }, 3000);
+
+    closeSheet() {
+        this.el.sheet.classList.remove('open');
+        this.el.sheetBackdrop.classList.remove('open');
+        document.body.style.overflow = '';
+        this.editingId = null;
+    }
+
+    setDraftQty(n) {
+        this.draftQty = Math.min(99, Math.max(1, n));
+        this.el.qtyValue.textContent = this.draftQty;
+        this.updateSheetTotal();
+    }
+
+    updateSheetTotal() {
+        const price = parseFloat(this.el.sheetPrice.value.replace(',', '.')) || 0;
+        this.el.sheetTotal.innerHTML = this.draftQty > 1 || price > 0
+            ? `Line total: <b>${this.money(price * this.draftQty)}</b>`
+            : '';
+    }
+
+    saveSheet() {
+        const it = this.items.find(i => i.id === this.editingId);
+        if (!it) return;
+        const name = this.el.sheetText.value.trim();
+        if (!name) { this.showToast('Product name cannot be empty', 'error'); return; }
+        if (this.isDuplicate(name, it.id)) { this.showToast('Already on the list', 'error'); return; }
+
+        it.text = name;
+        it.qty = this.draftQty;
+        it.price = parseFloat(this.el.sheetPrice.value.replace(',', '.')) || 0;
+        it.cat = this.el.sheetCat.value;
+        this.save();
+        this.closeSheet();
+        this.render();
+        this.showToast('Item updated');
+    }
+
+    /* -------------------------------- toast -------------------------------- */
+    showToast(msg, type = 'success', actionLabel = '', action = null) {
+        clearTimeout(this._toastTimer);
+        this.el.toastMsg.textContent = msg;
+        this.el.toast.className = `toast ${type} show`;
+        this.el.toastAction.textContent = actionLabel || '';
+        this.el.toastAction.onclick = action
+            ? () => { this.el.toast.classList.remove('show'); action(); }
+            : null;
+        this._toastTimer = setTimeout(() => this.el.toast.classList.remove('show'), action ? 5000 : 2400);
     }
 }
 
-// Initialize the application when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    new ShoppingListApp();
-});
+document.addEventListener('DOMContentLoaded', () => new ShoppingListApp());
 </script>
 </body>
 </html>

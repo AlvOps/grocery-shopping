@@ -1,61 +1,47 @@
 # 🍅 Grocery Shopping list
 
-Welcome! 👋  
-This is a simple and elegant grocery shopping list web app built with HTML, CSS, and Vanilla JavaScript.
-It features local storage persistence, editable items, and an animated interactive particle background.
+A fast, offline-first grocery list made for one hand and a shopping cart: paste a whole list at once, get it sorted by store aisle, tick things off, and see what you're spending.
 
-You can test it **HERE** ➡️ **https://alvops.github.io/grocery-shopping/shoppinglist.html**
+Test it **HERE** ➡️ **https://alvops.github.io/grocery-shopping/**
 
-✨ Features
+## ✨ Features
 
-Add products to your shopping list.
-Prevents duplicate items.
-Edit items by double-clicking.
-Mark items as completed with a checkbox.
-Delete items from the list.
-Saves your list automatically in localStorage.
-Comes with example items on first run (Bread, Milk, Eggs).
-Interactive animated particle background and floating shapes.
-Fully responsive design with modern UI styling.
+### Adding items
+- Type a product and press Enter / Add.
+- **Paste a whole list** — one product per line, or comma separated. Bullets, numbering (`1.`, `-`, `•`), blank lines, stray numbers and duplicates are stripped automatically.
+- Pasting a multi-line block straight into the input field imports it directly, no dialog needed.
+- `Cebolla ×2` sets a quantity while adding (also works in bulk paste).
+- Duplicate detection is case- and accent-insensitive (`Sésamo` = `sesamo`).
 
-🖼️ Preview
+### In the store
+- **Sorted by aisle** — items are grouped into Fruit & Veg, Bread, Meat & Fish, Dairy, Frozen, Pantry, Spices, Drinks, Snacks and Household using a keyword map for Spanish, German and English product names. Toggle to "As added" order any time.
+- **Search/filter** for when the list gets long and you're standing in the aisle.
+- **Big thumb-sized checkboxes** — tapping one moves the item to the "In the basket" group.
+- **Live counter and progress bar** — `3 of 12` plus the value of what's left to buy.
+- **Item sheet** — tap a product to set quantity, price per unit and aisle. Line totals add up in the header.
+- **Undo** on every delete and on both clear actions.
+- **Share** — sends the unchecked list via the native share sheet, or copies it to the clipboard.
+- **Keep screen on** — requests a Screen Wake Lock so the phone doesn't lock mid-shop.
+- **Mobile-first layout** — sticky add bar at the bottom within thumb reach, sticky header, 16px inputs (no iOS zoom), safe-area padding, no hover effects on touch, no particle canvas on phones to save battery.
 
-Dark-themed interface.
-Gradient buttons with hover effects.
-Smooth animations on list items.
-Glowing particle network background.
+### Data
+- Everything lives in `localStorage` under `shoppingListV2`; the old `shoppingList` key is migrated automatically on first load.
+- No accounts, no server, no network calls — works fully offline once loaded (the only external request is the Poppins font).
 
-🚀 Getting Started
+## 🚀 Getting started
 
-Clone or download the repository.
-Open index.html in your browser.
-Start adding products to your list.
+Open `index.html` in a browser, or serve the folder:
 
-🔧 Usage
+```bash
+python3 -m http.server 8000
+```
 
-Add item: Type a product and click Add or press Enter.
-Mark completed: Use the checkbox to mark as purchased.
-Edit item: Double-click on a product name.
-Delete item: Click the Delete button.
-Clear completed: It erases the completed ones.
-Clear all: it erases all the shopping list
+Then add it to your phone's home screen — it runs full-screen as a standalone web app.
 
-💾 Data Persistence
+## 🛠️ Tech
 
-The list is stored in your browser’s localStorage.
-Refreshing or closing the page keeps your list intact.
-Clearing localStorage resets the list.
+Plain HTML, CSS and vanilla JavaScript in a single file. No build step, no dependencies.
 
-📱 Responsive
+## 📄 License
 
-Works on desktop, tablet, and mobile.
-Layout adjusts automatically.
-
-🛠️ Technologies
-
-HTML5
-CSS3 (custom properties, flexbox, responsive design)
-Vanilla JavaScript (DOM manipulation, localStorage, canvas animation)
-
-
-
+MIT — see [LICENSE](LICENSE).
