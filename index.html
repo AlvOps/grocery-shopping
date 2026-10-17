@@ -2166,7 +2166,8 @@ const KF = [[0,60,0.0,283],[2.5,60,0.0,283],[2.533,61,0.179,282],[2.567,67,0.39,
 
   function play(face) {
     if (!build()) return Promise.resolve(false);
-    faceOffset = face === 'cruz' ? Math.PI : 0;
+    // swapped: CARA now lands on the common 1 EURO side, CRUZ on the national side
+    faceOffset = face === 'cara' ? Math.PI : 0;
 
     cancelAnimationFrame(rafId);
     if (resolvePlay) { const r = resolvePlay; resolvePlay = null; r(false); }
