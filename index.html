@@ -226,6 +226,20 @@
     .grade.c { background: #f5c93b; } .grade.d { background: #ef8c3c; }
     .grade.e { background: #e05252; color: #fff; }
 
+    .ean-link {
+        color: var(--primary-color);
+        font-weight: 600;
+        text-decoration: none;
+        border-bottom: 1px dotted currentColor;
+    }
+    .sheet-product .hint {
+        display: block;
+        margin-top: 4px;
+        font-size: 0.72rem;
+        color: rgba(251, 191, 36, 0.85);
+        line-height: 1.4;
+    }
+
     .community {
         display: none; align-items: center; gap: 10px;
         margin: -6px 0 14px; padding: 10px 12px;
@@ -1356,7 +1370,13 @@ class ShoppingListApp {
         if (item.grade && /^[a-e]$/.test(item.grade)) {
             facts.push(`<span class="grade ${item.grade}">Nutri-Score ${item.grade.toUpperCase()}</span>`);
         }
-        if (item.ean) facts.push(`EAN ${item.ean}`);
+        if (item.ean) {
+            facts.push(`EAN ${item.ean}`);
+            facts.push(`<a class="ean-link" href="https://www.google.com/search?q=${encodeURIComponent(item.ean + ' EAN')}" target="_blank" rel="noopener">search it</a>`);
+        }
+        if (item.ean && !item.brand && !item.image) {
+            facts.push('<span class="hint">not in the free databases — type the name below and I&#8217;ll remember it</span>');
+        }
         this.el.sheetFacts.innerHTML = facts.join(' &middot; ');
 
         const cp = item.community;
@@ -1423,6 +1443,7 @@ class ShoppingListApp {
         if (this.isDuplicate(name, it.id)) { this.showToast('Already on the list', 'error'); return; }
 
         it.text = name;
+        if (it.ean) this.learnName(it.ean, name);   // remember for the next scan
         it.qty = this.draftQty;
         it.price = parseFloat(this.el.sheetPrice.value.replace(',', '.')) || 0;
         it.cat = this.el.sheetCat.value;
@@ -1668,10 +1689,12 @@ class ShoppingListApp {
         this.showToast(`Looking up ${code}…`);
         const info = await this.lookupBarcode(code);
 
-        let name = (info && info.name) || '';
+        // A name you typed for this barcode once beats anything the databases say.
+        const learned = this.learnedName(code);
+        let name = learned || (info && info.name) || '';
         if (!name && info && info.brand) name = info.brand;
         if (!name) name = `Item ${code}`;
-        if (info && info.quantity && !name.includes(info.quantity)) name += ` ${info.quantity}`;
+        if (!learned && info && info.quantity && !name.includes(info.quantity)) name += ` ${info.quantity}`;
         if (name.length > 60) name = name.slice(0, 60).trim();
 
         if (this.isDuplicate(name)) {
@@ -1692,7 +1715,10 @@ class ShoppingListApp {
 
         const bits = [];
         if (info && info.community && info.community.value) bits.push(this.money(info.community.value) + ' seen');
-        this.showToast(info && info.name ? `${name} added${bits.length ? ' · ' + bits[0] : ''}` : `Added as ${name} — rename it if needed`);
+        const known = learned || (info && info.name);
+        this.showToast(known
+            ? `${name} added${bits.length ? ' · ' + bits[0] : ''}`
+            : `Item ${code} added — rename it once and I'll remember that barcode`);
     }
 
     // Product data: Open Food Facts first, then the sister databases
@@ -1715,7 +1741,52 @@ class ShoppingListApp {
         return entry;
     }
 
+    // Names you taught the app for a barcode (localStorage, per device).
+    learnedName(code) {
+        try {
+            const m = JSON.parse(localStorage.getItem('sl_ean_names') || '{}');
+            return m[code] || '';
+        } catch (e) { return ''; }
+    }
+
+    learnName(code, name) {
+        if (!code || !name) return;
+        try {
+            const m = JSON.parse(localStorage.getItem('sl_ean_names') || '{}');
+            m[code] = name;
+            localStorage.setItem('sl_ean_names', JSON.stringify(m));
+            const cache = JSON.parse(localStorage.getItem('sl_ean') || '{}');
+            if (cache[code]) { cache[code].name = name; localStorage.setItem('sl_ean', JSON.stringify(cache)); }
+        } catch (e) { /* storage full or blocked */ }
+    }
+
     async lookupProduct(code) {
+        // Optional external proxy (see README): a Worker holding a commercial
+        // product-API key. Without it we stay on the keyless databases.
+        const proxy = localStorage.getItem('sl_proxy') || '';
+        if (proxy) {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), 7000);
+            try {
+                const res = await fetch(`${proxy}${proxy.includes('?') ? '&' : '?'}ean=${encodeURIComponent(code)}`,
+                                        { signal: ctrl.signal });
+                const j = await res.json();
+                if (j && j.name) {
+                    return {
+                        name: String(j.name).trim(),
+                        brand: String(j.brand || '').trim(),
+                        quantity: String(j.quantity || '').trim(),
+                        image: j.image || '',
+                        grade: String(j.grade || '').toLowerCase()
+                    };
+                }
+            } catch (e) {
+                /* fall through to the free sources */
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
         const bases = [
             'https://world.openfoodfacts.org',
             'https://world.openbeautyfacts.org',

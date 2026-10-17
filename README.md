@@ -19,7 +19,24 @@ Test it **HERE** ➡️ **https://alvops.github.io/grocery-shopping/**
   - **names** come from Open Food Facts first, then Open Beauty Facts, Open Pet Food Facts and Open Products Facts — so a cosmetic or a cleaning product resolves too. German product names win when the database has one, since that is the label on the shelf here.
   - **the shelf photo, brand and Nutri-Score** are stored with the item and shown as a thumbnail in the list and as a product card in the detail sheet.
   - **a crowdsourced price** from [Open Prices](https://prices.openfoodfacts.org) for the most recent matching receipt — store, city and date included, with a one-tap "Use €x,xx" button. It is never applied silently: it may be an old price from another city.
-  - Unknown codes are added as `Item <code>` so you can rename them, and every lookup is cached per EAN, so the second scan is instant and works offline.
+  - Unknown codes are added as `Item <code>`. The sheet then offers a "search it" link and tells you the code is missing from the free databases — **type the name once and the app remembers that barcode forever** (`sl_ean_names`), so you never have to look it up twice.
+
+### Barcode data: what is free and what is not
+| Source | Cost | Coverage | CORS from a browser |
+| --- | --- | --- | --- |
+| Open Food / Beauty / Pet Food / Products Facts | free, no key | branded goods: good, Lidl/Edeka private label: patchy | ✅ |
+| Open Prices | free, no key | sparse, no country filter | ✅ |
+| UPCitemdb trial | 100 req/day | no EU data in the trial (tested: German EANs return nothing) | ❌ locked to their domain |
+| Barcode Lookup | ~$99/mo | broad, incl. EU retail | ❌ |
+| Go-UPC | ~$75/mo | broad | ❌ |
+
+A static page can't call the paid ones directly (no CORS) and can't hide their key. If store-brand coverage becomes a real problem, deploy a tiny proxy (Cloudflare Worker) holding the key as a secret, then point the app at it **without touching the code**:
+
+```js
+localStorage.setItem('sl_proxy', 'https://your-worker.example.workers.dev/lookup')
+```
+
+The app calls `${proxy}?ean=<code>` first and expects `{ "name": "...", "brand": "...", "quantity": "...", "image": "...", "grade": "..." }`; anything it returns wins, and the free chain is the fallback.
 - Browsers without `BarcodeDetector` (Safari on iPhone/iPad, Firefox) get the same live camera scan through **ZXing**, loaded on demand from jsDelivr the first time you tap Scan — nothing is downloaded until then. Verified decoding an EAN-13 on the fallback path.
 - No camera permission or no camera at all? The scanner drops to a numeric field — type the digits and get the same lookup.
 
