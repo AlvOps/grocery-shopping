@@ -15,8 +15,9 @@ Test it **HERE** ➡️ **https://alvops.github.io/grocery-shopping/**
 
 ### Voice and barcode
 - **🎤 Voice add** — tap Voice and speak: *"leche, huevos y pan"* is split into three items. Continuous listening, live interim transcript, handles Spanish/German/English separators (`y`, `und`, `and`). Chrome, Edge and Safari only (Web Speech API); the language defaults to `es-ES` and can be changed via `localStorage.sl_voiceLang`.
-- **📷 Barcode scan** — opens the rear camera and reads EAN-8/13 and UPC-A/E codes with the native `BarcodeDetector`, then looks the product up on Open Food Facts to get its name instead of just the number. Unknown codes are added as `Item <code>` so you can rename them, and every scanned code is kept on the item.
-- No camera or no `BarcodeDetector` (iOS Safari)? The scanner falls back to a numeric field — type the digits from the barcode and get the same lookup.
+- **📷 Barcode scan** — opens the rear camera and reads EAN-8/13 and UPC-A/E codes (native `BarcodeDetector` where available, ZXing elsewhere), then looks the product up on Open Food Facts to get its name instead of just the number. Unknown codes are added as `Item <code>` so you can rename them, and every scanned code is kept on the item.
+- Browsers without `BarcodeDetector` (Safari on iPhone/iPad, Firefox) get the same live camera scan through **ZXing**, loaded on demand from jsDelivr the first time you tap Scan — nothing is downloaded until then. Verified decoding an EAN-13 on the fallback path.
+- No camera permission or no camera at all? The scanner drops to a numeric field — type the digits and get the same lookup.
 
 ### In the store
 - **Sorted by aisle** — items are grouped into Fruit & Veg, Bread, Meat & Fish, Dairy, Frozen, Pantry, Spices, Drinks, Snacks and Household using a keyword map for Spanish, German and English product names. Toggle to "As added" order any time.

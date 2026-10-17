@@ -1395,22 +1395,38 @@ class ShoppingListApp {
         this.el.scanner.setAttribute('aria-hidden', 'false');
         this.el.scanStatus.textContent = 'Starting camera…';
 
-        if (!('BarcodeDetector' in window)) {
-            this.el.scanVideo.style.display = 'none';
-            this.el.scanStatus.textContent = 'Camera scanning is not supported in this browser — type the barcode below.';
-            this.el.scanManual.focus();
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            this.showManualFallback('This browser cannot open the camera — type the barcode below.');
             return;
         }
 
+        // Chrome/Edge/Android ship a native detector; Safari and Firefox do not,
+        // so fall back to ZXing loaded on demand (only when actually scanning).
+        if ('BarcodeDetector' in window) return this.startNativeScan();
+
+        this.el.scanStatus.textContent = 'Loading scanner…';
+        const ready = await this.loadZXing();
+        if (!ready) {
+            this.showManualFallback('Scanner could not load — type the barcode below.');
+            return;
+        }
+        return this.startZXingScan();
+    }
+
+    showManualFallback(message) {
+        this.el.scanVideo.style.display = 'none';
+        this.el.scanStatus.textContent = message;
+        this.el.scanManual.focus();
+    }
+
+    async startNativeScan() {
         try {
             this.stream = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: { ideal: 'environment' } },
                 audio: false
             });
         } catch (e) {
-            this.el.scanVideo.style.display = 'none';
-            this.el.scanStatus.textContent = 'No camera access — type the barcode below.';
-            this.el.scanManual.focus();
+            this.showManualFallback('No camera access — allow it in the browser settings, or type the barcode below.');
             return;
         }
 
@@ -1429,14 +1445,61 @@ class ShoppingListApp {
         this.scanTick();
     }
 
+    loadZXing() {
+        if (window.ZXing) return Promise.resolve(true);
+        if (this._zxingPromise) return this._zxingPromise;
+        this._zxingPromise = new Promise((resolve) => {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';
+            s.async = true;
+            s.onload = () => resolve(!!window.ZXing);
+            s.onerror = () => resolve(false);
+            document.head.appendChild(s);
+        });
+        return this._zxingPromise;
+    }
+
+    async startZXingScan() {
+        try {
+            this.reader = new ZXing.BrowserMultiFormatReader();
+            this.zxingControls = await this.reader.decodeFromConstraints(
+                { video: { facingMode: { ideal: 'environment' } } },
+                this.el.scanVideo,
+                (result) => {
+                    if (!result) return;
+                    const code = typeof result.getText === 'function' ? result.getText() : String(result.text || '');
+                    this.stopZXing();
+                    this.closeScanner();
+                    if (navigator.vibrate) navigator.vibrate(80);
+                    this.addBarcode(code);
+                }
+            );
+            this.el.scanStatus.textContent = 'Point the camera at a barcode';
+        } catch (e) {
+            this.stopZXing();
+            this.showManualFallback('No camera access — allow it in the browser settings, or type the barcode below.');
+        }
+    }
+
+    stopZXing() {
+        if (this.reader) {
+            try { this.reader.reset(); } catch (e) {}
+            this.reader = null;
+        }
+        this.zxingControls = null;
+    }
+
     closeScanner() {
         this.scanning = false;
         clearTimeout(this._scanTimer);
+        this.stopZXing();
         if (this.stream) {
             this.stream.getTracks().forEach(t => t.stop());
             this.stream = null;
         }
+        this.el.scanVideo.pause();
         this.el.scanVideo.srcObject = null;
+        this.el.scanVideo.style.display = '';
         this.el.scanner.classList.remove('open');
         this.el.scanner.setAttribute('aria-hidden', 'true');
     }
