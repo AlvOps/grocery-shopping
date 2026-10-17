@@ -13,6 +13,11 @@ Test it **HERE** ➡️ **https://alvops.github.io/grocery-shopping/**
 - `Cebolla ×2` sets a quantity while adding (also works in bulk paste).
 - Duplicate detection is case- and accent-insensitive (`Sésamo` = `sesamo`).
 
+### Voice and barcode
+- **🎤 Voice add** — tap Voice and speak: *"leche, huevos y pan"* is split into three items. Continuous listening, live interim transcript, handles Spanish/German/English separators (`y`, `und`, `and`). Chrome, Edge and Safari only (Web Speech API); the language defaults to `es-ES` and can be changed via `localStorage.sl_voiceLang`.
+- **📷 Barcode scan** — opens the rear camera and reads EAN-8/13 and UPC-A/E codes with the native `BarcodeDetector`, then looks the product up on Open Food Facts to get its name instead of just the number. Unknown codes are added as `Item <code>` so you can rename them, and every scanned code is kept on the item.
+- No camera or no `BarcodeDetector` (iOS Safari)? The scanner falls back to a numeric field — type the digits from the barcode and get the same lookup.
+
 ### In the store
 - **Sorted by aisle** — items are grouped into Fruit & Veg, Bread, Meat & Fish, Dairy, Frozen, Pantry, Spices, Drinks, Snacks and Household using a keyword map for Spanish, German and English product names. Toggle to "As added" order any time.
 - **Search/filter** for when the list gets long and you're standing in the aisle.
@@ -26,7 +31,13 @@ Test it **HERE** ➡️ **https://alvops.github.io/grocery-shopping/**
 
 ### Data
 - Everything lives in `localStorage` under `shoppingListV2`; the old `shoppingList` key is migrated automatically on first load.
-- No accounts, no server, no network calls — works fully offline once loaded (the only external request is the Poppins font).
+- Barcode lookups are cached under `sl_ean`, so a product scanned once resolves offline afterwards.
+- No accounts, no server. Only network calls: the Poppins font, and Open Food Facts when you scan a barcode.
+
+### Sending the list to Telegram
+Use **Share** — the native share sheet already lists Telegram. On browsers without it, the list is copied to the clipboard and the toast offers a **Telegram** button that opens `t.me/share/url` with the text pre-filled.
+
+That deep link is deliberate: **a static GitHub Pages site cannot keep a bot token secret.** Anything in the repo or the served JS is public, and Pages has no server to hold an environment variable. If you ever want a real "send automatically" button, put the token in a server-side secret — e.g. a Cloudflare Worker with `TELEGRAM_BOT_TOKEN` stored as an encrypted secret and the page calling that Worker — and never in this repo.
 
 ## 🚀 Getting started
 

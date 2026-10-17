@@ -92,18 +92,30 @@
         transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .toolbar {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .toolbar.secondary {
+        grid-template-columns: repeat(5, 1fr);
+        margin-bottom: 12px;
+    }
 
     .tool-btn {
-        display: inline-flex; align-items: center; gap: 6px;
-        padding: 9px 13px; min-height: 40px;
-        border-radius: 999px; border: 1px solid var(--border-color);
+        display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+        padding: 8px 4px; min-height: 54px;
+        border-radius: 14px; border: 1px solid var(--border-color);
         background: rgba(30, 41, 59, 0.55); color: var(--text-color);
-        font-family: inherit; font-size: 0.8rem; font-weight: 500;
+        font-family: inherit; font-size: 0.68rem; font-weight: 500; line-height: 1.1;
         cursor: pointer; touch-action: manipulation;
         transition: background var(--transition-time) ease, border-color var(--transition-time) ease,
                     transform var(--transition-time) ease, color var(--transition-time) ease;
     }
+
+    .tool-btn .ico { font-size: 1.06rem; line-height: 1; }
     .tool-btn:active { transform: scale(0.97); }
     .tool-btn.primary {
         background: linear-gradient(135deg, rgba(99,102,241,0.92), rgba(139,92,246,0.92));
@@ -354,6 +366,124 @@
     #sheetSave { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; }
     .sheet-actions button:active { transform: scale(0.98); }
 
+    /* ---------------------------- voice ---------------------------- */
+    .tool-btn.listening {
+        border-color: rgba(239, 68, 68, 0.7);
+        color: #fca5a5;
+        background: rgba(239, 68, 68, 0.12);
+        animation: pulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.35); }
+        50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    }
+
+    .voice-hint {
+        display: none;
+        margin: -2px 0 10px;
+        font-size: 0.78rem;
+        color: #fca5a5;
+    }
+    .voice-hint.on { display: block; }
+
+    /* --------------------------- scanner --------------------------- */
+    .scanner {
+        position: fixed;
+        inset: 0;
+        z-index: 90;
+        background: #000;
+        display: none;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .scanner.open { display: flex; }
+
+    #scanVideo {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        background: #000;
+    }
+
+    .scan-frame {
+        position: absolute;
+        left: 50%;
+        top: 42%;
+        transform: translate(-50%, -50%);
+        width: min(78vw, 340px);
+        height: min(34vh, 150px);
+        border: 2px solid rgba(255, 255, 255, 0.85);
+        border-radius: 18px;
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+        pointer-events: none;
+    }
+
+    .scan-frame::after {
+        content: '';
+        position: absolute;
+        left: 8%;
+        right: 8%;
+        top: 50%;
+        height: 2px;
+        border-radius: 2px;
+        background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+        animation: scanline 2s ease-in-out infinite;
+    }
+
+    @keyframes scanline {
+        0%, 100% { transform: translateY(-34px); opacity: 0.2; }
+        50% { transform: translateY(34px); opacity: 1; }
+    }
+
+    .scanner-top {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 14px;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.8), transparent);
+    }
+
+    #scanClose {
+        width: 44px; height: 44px; flex: 0 0 44px;
+        border: none; border-radius: 50%;
+        background: rgba(255, 255, 255, 0.16); color: #fff;
+        font-size: 1.1rem; cursor: pointer; touch-action: manipulation;
+    }
+
+    #scanStatus {
+        font-size: 0.86rem;
+        font-weight: 500;
+        color: #fff;
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+    }
+
+    .scanner-bottom {
+        position: relative;
+        padding: 16px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+        background: linear-gradient(0deg, rgba(0, 0, 0, 0.85), transparent);
+    }
+
+    .scan-manual { display: flex; gap: 8px; max-width: 560px; margin: 0 auto; }
+    #scanManual {
+        flex: 1; min-width: 0; height: 50px;
+        padding: 0 14px; border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: rgba(20, 25, 45, 0.85); color: #fff;
+        font-family: inherit; font-size: 16px;
+    }
+    #scanManual:focus { outline: none; border-color: var(--accent-color); }
+    #scanManualBtn {
+        height: 50px; padding: 0 20px; border: none; border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: #fff; font-family: inherit; font-size: 0.9rem; font-weight: 600;
+        cursor: pointer; touch-action: manipulation;
+    }
+
     @media (hover: hover) and (pointer: fine) {
         .list-item:hover { background: rgba(99,102,241,0.14); border-color: rgba(99,102,241,0.45); }
         .tool-btn:hover { background: rgba(51,65,85,0.7); }
@@ -391,14 +521,21 @@
         </header>
 
         <div class="toolbar">
-            <button id="pasteToggleBtn" class="tool-btn primary" aria-expanded="false" aria-controls="pastePanel">📋 Paste</button>
-            <button id="searchToggleBtn" class="tool-btn" aria-expanded="false" aria-controls="searchRow">🔍 Search</button>
-            <button id="sortBtn" class="tool-btn" title="Sort by store aisle">🏬 By aisle</button>
-            <button id="shareBtn" class="tool-btn">📤 Share</button>
-            <button id="wakeBtn" class="tool-btn" title="Keep the screen on while shopping">💡 Screen on</button>
-            <button id="clearCompletedBtn" class="tool-btn">Clear done</button>
-            <button id="clearAllBtn" class="tool-btn danger">Clear all</button>
+            <button id="pasteToggleBtn" class="tool-btn primary" aria-expanded="false" aria-controls="pastePanel"><span class="ico">📋</span><span class="lbl">Paste</span></button>
+            <button id="scanBtn" class="tool-btn"><span class="ico">📷</span><span class="lbl">Scan</span></button>
+            <button id="voiceBtn" class="tool-btn" aria-pressed="false"><span class="ico">🎤</span><span class="lbl">Voice</span></button>
+            <button id="searchToggleBtn" class="tool-btn" aria-expanded="false" aria-controls="searchRow"><span class="ico">🔍</span><span class="lbl">Search</span></button>
         </div>
+
+        <div class="toolbar secondary">
+            <button id="sortBtn" class="tool-btn" title="Group by store aisle"><span class="ico">🏬</span><span class="lbl">Aisle</span></button>
+            <button id="shareBtn" class="tool-btn" title="Share the list"><span class="ico">📤</span><span class="lbl">Share</span></button>
+            <button id="wakeBtn" class="tool-btn" title="Keep the screen on while shopping"><span class="ico">💡</span><span class="lbl">Screen</span></button>
+            <button id="clearCompletedBtn" class="tool-btn" title="Remove bought items"><span class="ico">✓</span><span class="lbl">Done</span></button>
+            <button id="clearAllBtn" class="tool-btn danger" title="Remove everything"><span class="ico">🗑</span><span class="lbl">Clear</span></button>
+        </div>
+
+        <div class="voice-hint" id="voiceHint" role="status" aria-live="polite"></div>
 
         <div class="search-row" id="searchRow">
             <input type="search" id="searchInput" placeholder="Find an item..." autocomplete="off" aria-label="Filter list" />
@@ -479,6 +616,21 @@
             <button id="sheetSave">Save</button>
         </div>
     </div>
+
+<div class="scanner" id="scanner" aria-hidden="true">
+    <video id="scanVideo" playsinline muted autoplay></video>
+    <div class="scan-frame"></div>
+    <div class="scanner-top">
+        <button id="scanClose" aria-label="Close scanner">✕</button>
+        <span id="scanStatus">Point the camera at a barcode</span>
+    </div>
+    <div class="scanner-bottom">
+        <div class="scan-manual">
+            <input id="scanManual" inputmode="numeric" autocomplete="off" placeholder="…or type the barcode" aria-label="Barcode number" />
+            <button id="scanManualBtn">Add</button>
+        </div>
+    </div>
+</div>
 
 <script>
 /* ---------------------------------------------------------------------------
@@ -605,6 +757,15 @@ class ShoppingListApp {
             wakeBtn: document.getElementById('wakeBtn'),
             clearCompleted: document.getElementById('clearCompletedBtn'),
             clearAll: document.getElementById('clearAllBtn'),
+            voiceBtn: document.getElementById('voiceBtn'),
+            voiceHint: document.getElementById('voiceHint'),
+            scanBtn: document.getElementById('scanBtn'),
+            scanner: document.getElementById('scanner'),
+            scanVideo: document.getElementById('scanVideo'),
+            scanStatus: document.getElementById('scanStatus'),
+            scanClose: document.getElementById('scanClose'),
+            scanManual: document.getElementById('scanManual'),
+            scanManualBtn: document.getElementById('scanManualBtn'),
             toast: document.getElementById('toast'),
             toastMsg: document.getElementById('toastMsg'),
             toastAction: document.getElementById('toastAction'),
@@ -658,7 +819,8 @@ class ShoppingListApp {
                     price: i.price || 0,
                     cat: i.cat || detectCategory(i.text),
                     done: !!i.done,
-                    ts: i.ts || Date.now()
+                    ts: i.ts || Date.now(),
+                    ean: i.ean || ''
                 }));
                 return;
             }
@@ -710,6 +872,18 @@ class ShoppingListApp {
             localStorage.setItem('sl_group', this.groupByAisle ? '1' : '0');
             this.render();
             this.showToast(this.groupByAisle ? 'Grouped by aisle' : 'Shown in added order');
+        });
+
+        // voice + barcode
+        this.el.voiceBtn.addEventListener('click', () => this.toggleVoice());
+        this.el.scanBtn.addEventListener('click', () => this.openScanner());
+        this.el.scanClose.addEventListener('click', () => this.closeScanner());
+        this.el.scanManualBtn.addEventListener('click', () => {
+            const code = this.el.scanManual.value.trim();
+            if (code) { this.el.scanManual.value = ''; this.addBarcode(code); }
+        });
+        this.el.scanManual.addEventListener('keydown', e => {
+            if (e.key === 'Enter') { e.preventDefault(); this.el.scanManualBtn.click(); }
         });
 
         this.el.shareBtn.addEventListener('click', () => this.share());
@@ -777,7 +951,7 @@ class ShoppingListApp {
 
         this.el.empty.classList.toggle('hidden', items.length > 0 || !!q);
         this.el.sortBtn.classList.toggle('active', this.groupByAisle);
-        this.el.sortBtn.textContent = this.groupByAisle ? '🏬 By aisle' : '↕️ As added';
+        this.setTool(this.el.sortBtn, this.groupByAisle ? '🏬' : '↕️', this.groupByAisle ? 'Aisle' : 'Added');
         this.updateStats();
     }
 
@@ -851,6 +1025,14 @@ class ShoppingListApp {
 
     money(n) { return '€' + n.toFixed(2).replace('.', ','); }
 
+    // Toolbar buttons are icon+label stacks; update the parts, not textContent.
+    setTool(btn, ico, label) {
+        const i = btn.querySelector('.ico');
+        const l = btn.querySelector('.lbl');
+        if (i) i.textContent = ico;
+        if (l) l.textContent = label;
+    }
+
     /* ------------------------------- add ---------------------------------- */
     addFromInput() {
         const text = this.el.input.value.trim();
@@ -887,7 +1069,7 @@ class ShoppingListApp {
         const open = typeof force === 'boolean' ? force : !this.el.pastePanel.classList.contains('open');
         this.el.pastePanel.classList.toggle('open', open);
         this.el.pasteToggle.setAttribute('aria-expanded', String(open));
-        this.el.pasteToggle.textContent = open ? '✕ Close' : '📋 Paste';
+        this.el.pasteToggle.classList.toggle('active', open);
         if (open) this.el.bulkInput.focus(); else this.el.bulkInput.value = '';
     }
 
@@ -1030,7 +1212,10 @@ class ShoppingListApp {
                 return;
             }
             await navigator.clipboard.writeText(text);
-            this.showToast('List copied to clipboard');
+            // Telegram deep link needs no bot token: it opens the app with the text ready.
+            const tg = 'https://t.me/share/url?url=' + encodeURIComponent('https://alvops.github.io/grocery-shopping/') +
+                       '&text=' + encodeURIComponent(text);
+            this.showToast('List copied', 'success', 'Telegram', () => window.open(tg, '_blank', 'noopener'));
         } catch (e) {
             if (e && e.name === 'AbortError') return;
             this.showToast('Could not share the list', 'error');
@@ -1092,9 +1277,11 @@ class ShoppingListApp {
 
     updateSheetTotal() {
         const price = parseFloat(this.el.sheetPrice.value.replace(',', '.')) || 0;
-        this.el.sheetTotal.innerHTML = this.draftQty > 1 || price > 0
-            ? `Line total: <b>${this.money(price * this.draftQty)}</b>`
-            : '';
+        const it = this.items.find(i => i.id === this.editingId);
+        const parts = [];
+        if (this.draftQty > 1 || price > 0) parts.push(`Line total: <b>${this.money(price * this.draftQty)}</b>`);
+        if (it && it.ean) parts.push(`barcode ${it.ean}`);
+        this.el.sheetTotal.innerHTML = parts.join(' · ');
     }
 
     saveSheet() {
@@ -1112,6 +1299,227 @@ class ShoppingListApp {
         this.closeSheet();
         this.render();
         this.showToast('Item updated');
+    }
+
+    /* -------------------------------- voice -------------------------------- */
+    toggleVoice() {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) {
+            this.showToast('Voice input needs Chrome, Edge or Safari', 'error');
+            return;
+        }
+        if (this.recognition) { this.stopVoice(); return; }
+
+        const rec = new SR();
+        rec.lang = localStorage.getItem('sl_voiceLang') || 'es-ES';
+        rec.continuous = true;
+        rec.interimResults = true;
+        rec.maxAlternatives = 1;
+
+        rec.onstart = () => {
+            this.el.voiceBtn.classList.add('listening');
+            this.el.voiceBtn.setAttribute('aria-pressed', 'true');
+            this.setTool(this.el.voiceBtn, '⏹', 'Stop');
+            this.el.voiceHint.classList.add('on');
+            this.el.voiceHint.textContent = 'Listening — say products, separated by “y” or commas.';
+        };
+
+        rec.onresult = (event) => {
+            let interim = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    const r = this.speakToItems(transcript);
+                    if (r.added) {
+                        this.el.voiceHint.textContent = `Added: ${r.added} item${r.added === 1 ? '' : 's'} — keep talking or tap Stop.`;
+                    } else if (r.skipped) {
+                        this.el.voiceHint.textContent = 'Already on the list — keep talking or tap Stop.';
+                    }
+                } else {
+                    interim += transcript;
+                }
+            }
+            if (interim) this.el.voiceHint.textContent = `“${interim}”`;
+        };
+
+        rec.onerror = (e) => {
+            if (e.error === 'no-speech' || e.error === 'aborted') return;
+            const msg = e.error === 'not-allowed' || e.error === 'service-not-allowed'
+                ? 'Microphone blocked — allow it in the browser settings.'
+                : `Voice error: ${e.error}`;
+            this.showToast(msg, 'error');
+            this.stopVoice();
+        };
+
+        rec.onend = () => {
+            // Browsers stop after a pause; restart while the user still wants it.
+            if (this.recognition === rec && this._voiceWanted) {
+                try { rec.start(); return; } catch (e) { /* fall through */ }
+            }
+            this.stopVoice();
+        };
+
+        this._voiceWanted = true;
+        this.recognition = rec;
+        try { rec.start(); }
+        catch (e) { this.showToast('Could not start the microphone', 'error'); this.stopVoice(); }
+    }
+
+    stopVoice() {
+        this._voiceWanted = false;
+        if (this.recognition) {
+            try { this.recognition.onend = null; this.recognition.stop(); } catch (e) {}
+            this.recognition = null;
+        }
+        this.el.voiceBtn.classList.remove('listening');
+        this.el.voiceBtn.setAttribute('aria-pressed', 'false');
+        this.setTool(this.el.voiceBtn, '🎤', 'Voice');
+        this.el.voiceHint.classList.remove('on');
+        this.el.voiceHint.textContent = '';
+    }
+
+    // "leche, huevos y pan" -> three items
+    speakToItems(transcript) {
+        const parts = String(transcript)
+            .replace(/[.]/g, ' ')
+            .split(/,|;|\s+(?:y|e|und|and)\s+/i)
+            .map(s => s.trim())
+            .filter(Boolean);
+        return this.addBulk(parts.join('\n'));
+    }
+
+    /* ------------------------------- scanner ------------------------------- */
+    async openScanner() {
+        if (this.el.scanner.classList.contains('open')) return;
+        this.el.scanner.classList.add('open');
+        this.el.scanner.setAttribute('aria-hidden', 'false');
+        this.el.scanStatus.textContent = 'Starting camera…';
+
+        if (!('BarcodeDetector' in window)) {
+            this.el.scanVideo.style.display = 'none';
+            this.el.scanStatus.textContent = 'Camera scanning is not supported in this browser — type the barcode below.';
+            this.el.scanManual.focus();
+            return;
+        }
+
+        try {
+            this.stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: 'environment' } },
+                audio: false
+            });
+        } catch (e) {
+            this.el.scanVideo.style.display = 'none';
+            this.el.scanStatus.textContent = 'No camera access — type the barcode below.';
+            this.el.scanManual.focus();
+            return;
+        }
+
+        this.el.scanVideo.style.display = '';
+        this.el.scanVideo.srcObject = this.stream;
+        try { await this.el.scanVideo.play(); } catch (e) {}
+
+        try {
+            this.detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'] });
+        } catch (e) {
+            this.detector = new BarcodeDetector();
+        }
+
+        this.el.scanStatus.textContent = 'Point the camera at a barcode';
+        this.scanning = true;
+        this.scanTick();
+    }
+
+    closeScanner() {
+        this.scanning = false;
+        clearTimeout(this._scanTimer);
+        if (this.stream) {
+            this.stream.getTracks().forEach(t => t.stop());
+            this.stream = null;
+        }
+        this.el.scanVideo.srcObject = null;
+        this.el.scanner.classList.remove('open');
+        this.el.scanner.setAttribute('aria-hidden', 'true');
+    }
+
+    scanTick() {
+        if (!this.scanning) return;
+        const tick = async () => {
+            if (!this.scanning) return;
+            try {
+                const codes = await this.detector.detect(this.el.scanVideo);
+                if (codes && codes.length) {
+                    const code = codes[0].rawValue;
+                    this.closeScanner();
+                    if (navigator.vibrate) navigator.vibrate(80);
+                    this.addBarcode(code);
+                    return;
+                }
+            } catch (e) { /* frame not ready — keep going */ }
+            this._scanTimer = setTimeout(tick, 300);
+        };
+        tick();
+    }
+
+    async addBarcode(code) {
+        code = String(code).trim();
+        if (!/^\d{8,14}$/.test(code)) {
+            this.showToast('That does not look like a barcode', 'error');
+            return;
+        }
+        if (this.items.some(i => i.ean === code)) {
+            this.showToast('That barcode is already on the list', 'error');
+            return;
+        }
+
+        this.showToast(`Looking up ${code}…`);
+        const info = await this.lookupBarcode(code);
+
+        let name = (info && info.name) || '';
+        if (!name && info && info.brand) name = info.brand;
+        if (!name) name = `Item ${code}`;
+        if (info && info.quantity && !name.includes(info.quantity)) name += ` ${info.quantity}`;
+        if (name.length > 60) name = name.slice(0, 60).trim();
+
+        if (this.isDuplicate(name)) {
+            this.showToast('Already on the list', 'error');
+            return;
+        }
+
+        this.items.push({
+            id: this.uid(), text: name, qty: 1, price: 0,
+            cat: detectCategory(name), done: false, ts: Date.now(), ean: code
+        });
+        this.save();
+        this.render();
+        this.showToast(info && info.name ? `${name} added` : `Added as ${name} — rename it if needed`);
+    }
+
+    async lookupBarcode(code) {
+        let cache = {};
+        try { cache = JSON.parse(localStorage.getItem('sl_ean') || '{}'); } catch (e) {}
+        if (cache[code]) return cache[code];
+
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 8000);
+        try {
+            const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json` +
+                        '?fields=product_name,product_name_es,product_name_en,brands,quantity';
+            const res = await fetch(url, { signal: ctrl.signal });
+            const json = await res.json();
+            const p = json && json.product;
+            const entry = p ? {
+                name: (p.product_name_es || p.product_name || p.product_name_en || '').trim(),
+                brand: (p.brands || '').split(',')[0].trim(),
+                quantity: (p.quantity || '').trim()
+            } : { name: '', brand: '', quantity: '' };
+            cache[code] = entry;
+            try { localStorage.setItem('sl_ean', JSON.stringify(cache)); } catch (e) {}
+            return entry;
+        } catch (e) {
+            return null;
+        } finally {
+            clearTimeout(timer);
+        }
     }
 
     /* -------------------------------- toast -------------------------------- */
