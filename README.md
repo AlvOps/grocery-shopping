@@ -49,6 +49,9 @@ The app calls `${proxy}?ean=<code>` first and expects `{ "name": "...", "brand":
 - **Undo** on every delete and on both clear actions.
 - **Share** — sends the unchecked list via the native share sheet, or copies it to the clipboard.
 - **Keep screen on** — requests a Screen Wake Lock so the phone doesn't lock mid-shop.
+- **🪙 Coin** — a €1 coin toss for when the list can't decide: the screen dims, the coin tumbles up (growing at the
+  apex, shrinking as it falls), lands on a face and announces `Ha salido CARA` / `Ha salido CRUZ`, with "Otra vez"
+  and tap-outside-to-close. Respects `prefers-reduced-motion` (instantly lands on the result).
 - **Mobile-first layout** — sticky add bar at the bottom within thumb reach, sticky header, 16px inputs (no iOS zoom), safe-area padding, no hover effects on touch, no particle canvas on phones to save battery.
 
 ### Data

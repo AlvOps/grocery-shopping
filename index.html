@@ -94,7 +94,7 @@
 
     .toolbar {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 8px;
         margin-bottom: 8px;
     }
@@ -453,6 +453,114 @@
     }
     .voice-hint.on { display: block; }
 
+    /* ----------------------------- coin ---------------------------- */
+    .coin-overlay {
+        position: fixed; inset: 0; z-index: 95;
+        display: none; flex-direction: column; align-items: center; justify-content: center;
+        gap: 26px;
+        background: rgba(3, 5, 15, 0.82);
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        opacity: 0; transition: opacity 0.25s ease;
+        padding: 24px;
+        text-align: center;
+    }
+    .coin-overlay.open { display: flex; opacity: 1; }
+
+    .coin-stage {
+        position: relative;
+        display: grid; place-items: center;
+        perspective: 900px;
+        min-height: 40vh;
+    }
+
+    .coin-float { will-change: transform; }
+
+    .coin {
+        position: relative;
+        width: min(44vw, 190px);
+        aspect-ratio: 1;
+        transform-style: preserve-3d;
+        will-change: transform;
+    }
+
+    .coin .face {
+        position: absolute; inset: 0;
+        border-radius: 50%;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 2px;
+        backface-visibility: hidden; -webkit-backface-visibility: hidden;
+        background:
+            radial-gradient(circle at 32% 26%, #fff7d4 0%, #f6da85 26%, #dcb03c 60%, #a87c1b 100%);
+        box-shadow:
+            inset 0 0 0 6px rgba(255, 255, 255, 0.26),
+            inset 0 0 26px rgba(120, 80, 0, 0.45),
+            0 16px 34px rgba(0, 0, 0, 0.55);
+        border: 2px solid rgba(255, 236, 178, 0.6);
+    }
+
+    .coin .face::after {
+        content: '';
+        position: absolute; inset: 13%;
+        border-radius: 50%;
+        border: 2px dashed rgba(120, 80, 0, 0.3);
+    }
+
+    .coin .face .val {
+        font-size: clamp(2rem, 9vw, 3rem);
+        font-weight: 700; line-height: 1;
+        color: #6a4a00;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+    }
+
+    .coin .face .sub {
+        font-size: 0.6rem; font-weight: 700; letter-spacing: 0.24em;
+        color: rgba(90, 60, 0, 0.72);
+        margin-top: 2px;
+    }
+
+    .coin .back { transform: rotateY(180deg); }
+    .coin .back .face-inner { transform: none; }
+
+    .coin-shadow {
+        position: absolute;
+        bottom: 4%;
+        width: min(30vw, 130px); height: 14px;
+        border-radius: 50%;
+        background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.55), transparent 70%);
+        filter: blur(2px);
+    }
+
+    .coin-result {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: var(--text-color);
+        min-height: 1.4em;
+        opacity: 0;
+        transform: translateY(6px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .coin-result.show { opacity: 1; transform: none; }
+    .coin-result b { color: var(--accent-color); }
+
+    .coin-actions {
+        display: flex; gap: 10px;
+        opacity: 0; pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    .coin-actions.show { opacity: 1; pointer-events: auto; }
+    .coin-actions button {
+        min-height: 46px; padding: 0 22px;
+        border-radius: 12px; border: 1px solid var(--border-color);
+        background: rgba(30, 41, 59, 0.8); color: var(--text-color);
+        font-family: inherit; font-size: 0.86rem; font-weight: 600;
+        cursor: pointer; touch-action: manipulation;
+    }
+    .coin-actions button.primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-color: transparent; color: #fff;
+    }
+    .coin-actions button:active { transform: scale(0.97); }
+
     /* --------------------------- scanner --------------------------- */
     .scanner {
         position: fixed;
@@ -591,6 +699,7 @@
             <button id="scanBtn" class="tool-btn"><span class="ico">📷</span><span class="lbl">Scan</span></button>
             <button id="voiceBtn" class="tool-btn" aria-pressed="false"><span class="ico">🎤</span><span class="lbl">Voice</span></button>
             <button id="searchToggleBtn" class="tool-btn" aria-expanded="false" aria-controls="searchRow"><span class="ico">🔍</span><span class="lbl">Search</span></button>
+            <button id="coinBtn" class="tool-btn" title="Toss a €1 coin"><span class="ico">🪙</span><span class="lbl">Coin</span></button>
         </div>
 
         <div class="toolbar secondary">
@@ -695,6 +804,31 @@
             <button id="sheetSave">Save</button>
         </div>
     </div>
+
+<div class="coin-overlay" id="coinOverlay" role="dialog" aria-modal="true" aria-label="Coin toss" aria-hidden="true">
+    <div class="coin-stage">
+        <div class="coin-float" id="coinFloat">
+            <div class="coin" id="coin">
+                <div class="face front">
+                    <span class="val">1 €</span>
+                    <span class="sub">CARA</span>
+                </div>
+                <div class="face back">
+                    <span class="val">1 €</span>
+                    <span class="sub">CRUZ</span>
+                </div>
+            </div>
+        </div>
+        <div class="coin-shadow" id="coinShadow"></div>
+    </div>
+
+    <div class="coin-result" id="coinResult" aria-live="assertive"></div>
+
+    <div class="coin-actions" id="coinActions">
+        <button id="coinAgain" class="primary">Otra vez</button>
+        <button id="coinClose">Cerrar</button>
+    </div>
+</div>
 
 <div class="scanner" id="scanner" aria-hidden="true">
     <video id="scanVideo" playsinline muted autoplay></video>
@@ -838,6 +972,15 @@ class ShoppingListApp {
             clearAll: document.getElementById('clearAllBtn'),
             voiceBtn: document.getElementById('voiceBtn'),
             voiceHint: document.getElementById('voiceHint'),
+            coinBtn: document.getElementById('coinBtn'),
+            coinOverlay: document.getElementById('coinOverlay'),
+            coinFloat: document.getElementById('coinFloat'),
+            coin: document.getElementById('coin'),
+            coinShadow: document.getElementById('coinShadow'),
+            coinResult: document.getElementById('coinResult'),
+            coinActions: document.getElementById('coinActions'),
+            coinAgain: document.getElementById('coinAgain'),
+            coinClose: document.getElementById('coinClose'),
             scanBtn: document.getElementById('scanBtn'),
             scanner: document.getElementById('scanner'),
             scanVideo: document.getElementById('scanVideo'),
@@ -964,6 +1107,14 @@ class ShoppingListApp {
             this.showToast(this.groupByAisle ? 'Grouped by aisle' : 'Shown in added order');
         });
 
+        // coin toss
+        this.el.coinBtn.addEventListener('click', () => this.openCoin());
+        this.el.coinClose.addEventListener('click', () => this.closeCoin());
+        this.el.coinAgain.addEventListener('click', () => this.tossCoin());
+        this.el.coinOverlay.addEventListener('click', (e) => {
+            if (e.target === this.el.coinOverlay) this.closeCoin();
+        });
+
         // voice + barcode
         this.el.voiceBtn.addEventListener('click', () => this.toggleVoice());
         this.el.scanBtn.addEventListener('click', () => this.openScanner());
@@ -994,7 +1145,11 @@ class ShoppingListApp {
             this.updateSheetTotal();
             this.showToast('Community price applied');
         });
-        document.addEventListener('keydown', e => { if (e.key === 'Escape' && this.el.sheet.classList.contains('open')) this.closeSheet(); });
+        document.addEventListener('keydown', e => {
+            if (e.key !== 'Escape') return;
+            if (this.el.coinOverlay.classList.contains('open')) this.closeCoin();
+            else if (this.el.sheet.classList.contains('open')) this.closeSheet();
+        });
     }
 
     buildCategorySelect() {
@@ -1451,6 +1606,81 @@ class ShoppingListApp {
         this.closeSheet();
         this.render();
         this.showToast('Item updated');
+    }
+
+    /* ------------------------------ coin toss ------------------------------ */
+    openCoin() {
+        this.el.coinOverlay.classList.add('open');
+        this.el.coinOverlay.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        this.tossCoin();
+    }
+
+    closeCoin() {
+        if (this._coinAnims) { this._coinAnims.forEach(a => { try { a.cancel(); } catch (e) {} }); this._coinAnims = null; }
+        this.el.coinOverlay.classList.remove('open');
+        this.el.coinOverlay.setAttribute('aria-hidden', 'true');
+        this.el.coinResult.classList.remove('show');
+        this.el.coinActions.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    tossCoin() {
+        const cara = Math.random() < 0.5;
+        const label = cara ? 'CARA' : 'CRUZ';
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const turns = (5 + Math.floor(Math.random() * 3)) * 360 + (cara ? 0 : 180);
+        const duration = 1650;
+
+        this.el.coinResult.classList.remove('show');
+        this.el.coinActions.classList.remove('show');
+        this.el.coinResult.textContent = '';
+
+        if (this._coinAnims) { this._coinAnims.forEach(a => { try { a.cancel(); } catch (e) {} }); this._coinAnims = null; }
+
+        if (reduce) {
+            this.el.coin.style.transform = `rotateY(${turns}deg)`;
+            this.revealCoin(label);
+            return;
+        }
+
+        this.el.coin.style.transform = 'rotateY(0deg)';
+        this.el.coinFloat.style.transform = 'translateY(0) scale(1)';
+
+        // Up, hang, fall, small bounce — bigger the higher it gets.
+        const float = this.el.coinFloat.animate([
+            { transform: 'translateY(0) scale(1)', offset: 0 },
+            { transform: 'translateY(-34vh) scale(1.5)', offset: 0.42 },
+            { transform: 'translateY(-6vh) scale(1.12)', offset: 0.78 },
+            { transform: 'translateY(-11vh) scale(1.2)', offset: 0.88 },
+            { transform: 'translateY(0) scale(1)', offset: 1 }
+        ], { duration, easing: 'cubic-bezier(.33,.02,.62,1)', fill: 'forwards' });
+
+        // Spin on its own axis, landing on the winning face.
+        const spin = this.el.coin.animate([
+            { transform: 'rotateY(0deg) rotateZ(0deg)' },
+            { transform: `rotateY(${turns}deg) rotateZ(${cara ? 7 : -7}deg)` }
+        ], { duration, easing: 'cubic-bezier(.22,.72,.35,1)', fill: 'forwards' });
+
+        const shadow = this.el.coinShadow.animate([
+            { transform: 'scaleX(1)', opacity: 0.85 },
+            { transform: 'scaleX(0.42)', opacity: 0.25, offset: 0.42 },
+            { transform: 'scaleX(1)', opacity: 0.85 }
+        ], { duration, easing: 'cubic-bezier(.33,.02,.62,1)', fill: 'forwards' });
+
+        this._coinAnims = [float, spin, shadow];
+        spin.onfinish = () => {
+            this.el.coin.style.transform = `rotateY(${turns}deg)`;
+            this.el.coinFloat.style.transform = 'translateY(0) scale(1)';
+            this.revealCoin(label);
+        };
+    }
+
+    revealCoin(label) {
+        this.el.coinResult.innerHTML = `Ha salido <b>${label}</b>`;
+        this.el.coinResult.classList.add('show');
+        this.el.coinActions.classList.add('show');
+        if (navigator.vibrate) navigator.vibrate(40);
     }
 
     /* -------------------------------- voice -------------------------------- */
