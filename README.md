@@ -51,8 +51,9 @@ The app calls `${proxy}?ean=<code>` first and expects `{ "name": "...", "brand":
 - **Keep screen on** — requests a Screen Wake Lock so the phone doesn't lock mid-shop.
 - **🪙 Coin** — a real €1 toss rendered in WebGL (three.js): the stage goes pure black, the coin is thrown at the
   camera, tumbling so you see heads, tails and its milled edge, and it lands huge and face-on announcing
-  `Ha salido CARA` / `Ha salido CRUZ`, with "Otra vez" and tap-outside-to-close. The motion is keyframed from a
-  recorded reference toss (diameter, height and rotation per frame), the two faces are photo textures, the outcome
+  `Ha salido CARA` / `Ha salido CRUZ`, with "Otra vez" and tap-outside-to-close. The motion is keyframed from the
+  recorded reference toss (diameter, height and rotation per frame) and, like the source GIF, keeps replaying its full
+  cycle — throw, hold, flip away, rest — while the overlay is open, the two faces are photo textures, the outcome
   is random but the landing face is chosen programmatically. three.js is fetched only the first time you tap Coin;
   `prefers-reduced-motion` skips straight to the result.
 - **Mobile-first layout** — sticky add bar at the bottom within thumb reach, sticky header, 16px inputs (no iOS zoom), safe-area padding, no hover effects on touch, no particle canvas on phones to save battery.

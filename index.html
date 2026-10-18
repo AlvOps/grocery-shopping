@@ -2069,7 +2069,7 @@ const KF = [[0,60,0.0,283],[2.5,60,0.0,283],[2.533,61,0.179,282],[2.567,67,0.39,
   const START_T = 2.5;                // the reference coin rests idle until here
   const END_T = 4.4;                  // ... and holds the close-up at this point
   let cv, renderer, scene, camera, coin, ready = false;
-  let rafId = 0, playing = false, resolvePlay = null, lastT = 0, faceOffset = 0;
+  let rafId = 0, rafLoop = 0, playing = false, looping = false, resolvePlay = null, lastT = 0, faceOffset = 0;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function build() {
@@ -2172,7 +2172,7 @@ const KF = [[0,60,0.0,283],[2.5,60,0.0,283],[2.533,61,0.179,282],[2.567,67,0.39,
     cancelAnimationFrame(rafId);
     if (resolvePlay) { const r = resolvePlay; resolvePlay = null; r(false); }
 
-    if (reduce) { draw(END_T); return Promise.resolve(true); }
+    if (reduce) { draw(END_T); return Promise.resolve(true); }   // no loop when motion is reduced
 
     playing = true;
     const t0 = performance.now();
@@ -2187,6 +2187,7 @@ const KF = [[0,60,0.0,283],[2.5,60,0.0,283],[2.533,61,0.179,282],[2.567,67,0.39,
           playing = false;
           const r = resolvePlay; resolvePlay = null;
           if (r) r(true);
+          startLoop();
           return;
         }
         draw(t);
@@ -2196,13 +2197,34 @@ const KF = [[0,60,0.0,283],[2.5,60,0.0,283],[2.533,61,0.179,282],[2.567,67,0.39,
     });
   }
 
+  // The source clip is a GIF: once it has landed, keep replaying the full cycle
+  // (flip away, rest small, throw again) while the overlay is open.
+  function startLoop() {
+    stopLoop();
+    looping = true;
+    const t0 = performance.now();
+    const step = (now) => {
+      if (!looping) return;
+      draw((END_T + (now - t0) / 1000) % LOOP);
+      rafLoop = requestAnimationFrame(step);
+    };
+    rafLoop = requestAnimationFrame(step);
+  }
+
+  function stopLoop() {
+    looping = false;
+    cancelAnimationFrame(rafLoop);
+  }
+
   function stop() {
     playing = false;
+    looping = false;
     cancelAnimationFrame(rafId);
+    cancelAnimationFrame(rafLoop);
     if (resolvePlay) { const r = resolvePlay; resolvePlay = null; r(false); }
   }
 
-  window.__CoinScene = { play, stop, isReady: () => ready };
+  window.__CoinScene = { play, stop, isReady: () => ready, isLooping: () => looping };
 })();
 
 </script>
